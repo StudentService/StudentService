@@ -1,0 +1,77 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# Go
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace files
+*.out
+*.test
+*.prof
+*.cover
+coverage.html
+coverage.out
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.prof
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.lnk
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker
+*.pid
+*.pid.lock
+
+# Swagger generated (если не хотите хранить в репозитории)
+# swagger.json
+# swagger.yaml
+# docs.go
+
+# Backups
+*.bak
+*.backup
+
+# Project specific
+backend.iml
