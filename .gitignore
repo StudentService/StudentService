@@ -1,0 +1,94 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# Go
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace files
+*.out
+*.test
+*.prof
+*.cover
+coverage.html
+coverage.out
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.lnk
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker
+*.pid
+*.pid.lock
+
+# Swagger generated (если не хотите хранить в репозитории)
+# swagger.json
+# swagger.yaml
+# docs.go
+
+# Backups
+*.bak
+*.backup
+
+# Project specific
+backend.iml
+
+# Node.js / npm / yarn
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Сборка / кэш фронтенда (если используешь React/Vite/Next и т.д.)
+frontend/.next/
+frontend/build/
+frontend/dist/
+frontend/node_modules/   # на всякий случай, если будет отдельная
+
+# Бэкенд (если есть dist или build)
+backend/dist/
+backend/build/
+backend/node_modules/
+
+# Общие
+.env.development.local
+.env.test.local
+.env.production.local
