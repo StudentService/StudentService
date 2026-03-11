@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+    /* Тот самый бирюзовый цвет "Капитанов" */
+    --color-brand: #15808d;
+    --color-brand-dark: #0e5a63;
+    --color-brand-light: #e8f3f4;
+
+    /* Радиусы как на макете */
+    --radius-3xl: 1.5rem;
+    --radius-2xl: 1rem;
+}
+
+/* Опционально: сглаживание шрифтов */
+body {
+    @apply antialiased text-slate-900 bg-[#f8f9fa];
+}
