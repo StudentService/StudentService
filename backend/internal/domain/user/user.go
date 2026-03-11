@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -19,15 +20,26 @@ const (
 )
 
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	Username     string    `json:"username"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	Role         Role      `json:"role"`
-	FirstName    string    `json:"first_name"`
-	LastName     string    `json:"last_name"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           uuid.UUID  `json:"id"`
+	Username     string     `json:"username"`
+	Email        string     `json:"email"`
+	PasswordHash string     `json:"-"`
+	Role         Role       `json:"role"`
+	FirstName    string     `json:"first_name"`
+	LastName     string     `json:"last_name"`
+	GroupID      *uuid.UUID `json:"group_id,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+}
+
+type Repository interface {
+	GetByID(ctx context.Context, id string) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetByUsername(ctx context.Context, username string) (*User, error)
+	GetByGroupID(ctx context.Context, groupID uuid.UUID) ([]*User, error)
+	Create(ctx context.Context, u *User) (*User, error)
+	Update(ctx context.Context, u *User) error
+	Delete(ctx context.Context, id string) error
 }
 
 // SetPassword хеширует и устанавливает пароль

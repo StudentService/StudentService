@@ -1,6 +1,7 @@
 package http
 
 import (
+	"backend/internal/infrastructure/repositories"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -11,7 +12,6 @@ import (
 	_ "backend/docs" // подключаем сгенерированные docs
 
 	"backend/internal/application"
-	"backend/internal/infrastructure"
 	"backend/internal/interfaces/http/handlers"
 	"backend/internal/interfaces/http/middleware"
 )
@@ -57,15 +57,29 @@ func SetupRouter() *gin.Engine {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Репозитории
-	userRepo := &infrastructure.UserRepository{}
+	userRepo := &repositories.UserRepository{}
+	courseRepo := &repositories.CourseRepository{}
+	groupRepo := &repositories.GroupRepository{}
+	calendarRepo := &repositories.CalendarRepository{}
+	challengeRepo := &repositories.ChallengeRepository{}
+	gradeRepo := repositories.NewGradeRepository()
+	questionnaireRepo := &repositories.QuestionnaireRepository{}
 
 	// Сервисы
 	userService := application.NewUserService(userRepo)
 	authService := application.NewAuthService(userRepo)
+	calendarService := application.NewCalendarService(calendarRepo, userRepo, courseRepo, groupRepo)
+	challengeService := application.NewChallengeService(challengeRepo, userRepo)
+	gradeService := application.NewGradeService(gradeRepo, userRepo, courseRepo)
+	questionnaireService := application.NewQuestionnaireService(questionnaireRepo, userRepo)
 
 	// Хендлеры
 	userHandler := handlers.NewUserHandler(userService)
 	authHandler := handlers.NewAuthHandler(authService)
+	calendarHandler := handlers.NewCalendarHandler(calendarService)
+	challengeHandler := handlers.NewChallengeHandler(challengeService)
+	gradeHandler := handlers.NewGradeHandler(gradeService)
+	questionnaireHandler := handlers.NewQuestionnaireHandler(questionnaireService)
 
 	// Публичные маршруты (без аутентификации)
 	auth := r.Group("/api/v1/auth")
@@ -86,6 +100,50 @@ func SetupRouter() *gin.Engine {
 
 		// Доступ к другим пользователям (с проверкой прав)
 		api.GET("/users/:id", userHandler.GetUserByID)
+
+		// Календарь
+		calendar := api.Group("/calendar")
+		{
+			calendar.GET("/events/my", calendarHandler.GetMyEvents)
+			calendar.POST("/events", calendarHandler.CreateEvent)       // для преподавателей/админов
+			calendar.PATCH("/events/:id", calendarHandler.UpdateEvent)  // для создателя/админа
+			calendar.DELETE("/events/:id", calendarHandler.DeleteEvent) // для создателя/админа
+		}
+
+		// Личные вызовы
+		api.GET("/challenges/my", challengeHandler.GetMyChallenges)
+		api.GET("/challenges/:id", challengeHandler.GetChallengeByID)
+		api.POST("/challenges", challengeHandler.CreateChallenge)
+		api.PATCH("/challenges/:id", challengeHandler.UpdateChallenge)
+		api.DELETE("/challenges/:id", challengeHandler.DeleteChallenge)
+
+		// Оценки и успеваемость
+		grades := api.Group("/grades")
+		{
+			// Для студента
+			grades.GET("/my", gradeHandler.GetMyGrades)
+			grades.GET("/my/summary", gradeHandler.GetMySummary)
+			grades.GET("/my/period", gradeHandler.GetMyGradesByPeriod)
+			grades.GET("/my/courses/:courseId", gradeHandler.GetMyGradesByCourse)
+
+			// Для преподавателя (управление)
+			grades.POST("/students/:studentId", gradeHandler.CreateGrade)
+			grades.PATCH("/:id", gradeHandler.UpdateGrade)
+			grades.DELETE("/:id", gradeHandler.DeleteGrade)
+		}
+
+		// Анкета-запрос
+		questionnaire := api.Group("/questionnaire")
+		{
+			questionnaire.GET("/my", questionnaireHandler.GetMyQuestionnaire)
+			questionnaire.GET("/template", questionnaireHandler.GetTemplate)
+			questionnaire.POST("/submit", questionnaireHandler.SubmitQuestionnaire)
+			questionnaire.POST("/draft", questionnaireHandler.SaveDraft)
+
+			// Админские маршруты
+			questionnaire.GET("", questionnaireHandler.ListByStatus)
+			questionnaire.POST("/:id/review", questionnaireHandler.ReviewQuestionnaire)
+		}
 	}
 
 	return r
