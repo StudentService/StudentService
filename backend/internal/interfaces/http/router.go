@@ -64,6 +64,7 @@ func SetupRouter() *gin.Engine {
 	challengeRepo := &repositories.ChallengeRepository{}
 	gradeRepo := repositories.NewGradeRepository()
 	questionnaireRepo := &repositories.QuestionnaireRepository{}
+	activityRepo := repositories.NewActivityRepository()
 
 	// Сервисы
 	userService := application.NewUserService(userRepo)
@@ -72,6 +73,7 @@ func SetupRouter() *gin.Engine {
 	challengeService := application.NewChallengeService(challengeRepo, userRepo)
 	gradeService := application.NewGradeService(gradeRepo, userRepo, courseRepo)
 	questionnaireService := application.NewQuestionnaireService(questionnaireRepo, userRepo)
+	activityService := application.NewActivityService(activityRepo, userRepo, courseRepo, groupRepo)
 
 	// Хендлеры
 	userHandler := handlers.NewUserHandler(userService)
@@ -80,6 +82,7 @@ func SetupRouter() *gin.Engine {
 	challengeHandler := handlers.NewChallengeHandler(challengeService)
 	gradeHandler := handlers.NewGradeHandler(gradeService)
 	questionnaireHandler := handlers.NewQuestionnaireHandler(questionnaireService)
+	activityHandler := handlers.NewActivityHandler(activityService)
 
 	// Публичные маршруты (без аутентификации)
 	auth := r.Group("/api/v1/auth")
@@ -143,6 +146,22 @@ func SetupRouter() *gin.Engine {
 			// Админские маршруты
 			questionnaire.GET("", questionnaireHandler.ListByStatus)
 			questionnaire.POST("/:id/review", questionnaireHandler.ReviewQuestionnaire)
+		}
+
+		// Активности и участия
+		activities := api.Group("/activities")
+		{
+			// Для студентов
+			activities.GET("/available", activityHandler.GetAvailableActivities)
+			activities.GET("/my", activityHandler.GetMyParticipations)
+			activities.POST("/:activityId/enroll", activityHandler.Enroll)
+			activities.DELETE("/:activityId/enroll", activityHandler.CancelEnrollment)
+
+			// Для преподавателей/админов
+			activities.POST("", activityHandler.CreateActivity)
+			activities.PATCH("/:id", activityHandler.UpdateActivity)
+			activities.DELETE("/:id", activityHandler.DeleteActivity)
+			activities.GET("/:id/participants", activityHandler.GetActivityParticipants)
 		}
 	}
 

@@ -23,6 +23,552 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/activities": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создаёт новую активность в каталоге",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Создание новой активности (для преподавателей/админов)",
+                "parameters": [
+                    {
+                        "description": "Данные активности",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/activity.CreateActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/activity.Activity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/available": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список активностей, доступных для текущего пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Получение доступных активностей",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/activity.ActivityResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/my": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список активностей, в которых участвует текущий пользователь",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Получение моих участий",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/activity.ParticipationResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/{activityId}/enroll": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Записывает текущего пользователя на указанную активность",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Запись на активность",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "activityId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Отменяет запись текущего пользователя на активность",
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Отмена записи на активность",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "activityId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет активность (только если нет участников)",
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Удаление активности",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет существующую активность",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Обновление активности",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/activity.UpdateActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/activity.Activity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/{id}/participants": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список студентов, записанных на активность",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Получение участников активности (для преподавателей)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/activity.ParticipationResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Получение JWT токенов по email и паролю",
@@ -1863,6 +2409,386 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "activity.Activity": {
+            "type": "object",
+            "properties": {
+                "course_id": {
+                    "description": "Для кого активность",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "created_by_role": {
+                    "type": "string"
+                },
+                "current_participants": {
+                    "type": "integer"
+                },
+                "deadline": {
+                    "description": "для задач",
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "description": "Место проведения",
+                    "type": "string"
+                },
+                "max_participants": {
+                    "description": "Ограничения",
+                    "type": "integer"
+                },
+                "online_link": {
+                    "type": "string"
+                },
+                "points": {
+                    "description": "Баллы/вес",
+                    "type": "integer"
+                },
+                "start_time": {
+                    "description": "Временные параметры",
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/activity.ActivityStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/activity.ActivityType"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "weight": {
+                    "description": "вес для метрик",
+                    "type": "number"
+                }
+            }
+        },
+        "activity.ActivityResponse": {
+            "type": "object",
+            "properties": {
+                "current_participants": {
+                    "type": "integer"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "enrollment_status": {
+                    "$ref": "#/definitions/activity.ParticipationStatus"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_enrolled": {
+                    "description": "флаг, записан ли текущий пользователь",
+                    "type": "boolean"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "max_participants": {
+                    "type": "integer"
+                },
+                "online_link": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/activity.ActivityStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/activity.ActivityType"
+                }
+            }
+        },
+        "activity.ActivityStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "completed",
+                "cancelled",
+                "draft"
+            ],
+            "x-enum-comments": {
+                "ActivityStatusActive": "активна",
+                "ActivityStatusCancelled": "отменена",
+                "ActivityStatusCompleted": "завершена",
+                "ActivityStatusDraft": "черновик"
+            },
+            "x-enum-descriptions": [
+                "активна",
+                "завершена",
+                "отменена",
+                "черновик"
+            ],
+            "x-enum-varnames": [
+                "ActivityStatusActive",
+                "ActivityStatusCompleted",
+                "ActivityStatusCancelled",
+                "ActivityStatusDraft"
+            ]
+        },
+        "activity.ActivityType": {
+            "type": "string",
+            "enum": [
+                "class",
+                "workshop",
+                "meeting",
+                "task",
+                "project",
+                "event"
+            ],
+            "x-enum-comments": {
+                "ActivityTypeClass": "занятие",
+                "ActivityTypeEvent": "мероприятие",
+                "ActivityTypeMeeting": "встреча",
+                "ActivityTypeProject": "проект",
+                "ActivityTypeTask": "задача",
+                "ActivityTypeWorkshop": "воркшоп"
+            },
+            "x-enum-descriptions": [
+                "занятие",
+                "воркшоп",
+                "встреча",
+                "задача",
+                "проект",
+                "мероприятие"
+            ],
+            "x-enum-varnames": [
+                "ActivityTypeClass",
+                "ActivityTypeWorkshop",
+                "ActivityTypeMeeting",
+                "ActivityTypeTask",
+                "ActivityTypeProject",
+                "ActivityTypeEvent"
+            ]
+        },
+        "activity.CreateActivityRequest": {
+            "type": "object",
+            "required": [
+                "title",
+                "type"
+            ],
+            "properties": {
+                "course_id": {
+                    "type": "string"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "max_participants": {
+                    "type": "integer"
+                },
+                "online_link": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "class",
+                        "workshop",
+                        "meeting",
+                        "task",
+                        "project",
+                        "event"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/activity.ActivityType"
+                        }
+                    ]
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "activity.ParticipationResponse": {
+            "type": "object",
+            "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "activity_title": {
+                    "type": "string"
+                },
+                "activity_type": {
+                    "$ref": "#/definitions/activity.ActivityType"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "enrolled_at": {
+                    "type": "string"
+                },
+                "feedback": {
+                    "type": "string"
+                },
+                "grade": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "points_earned": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/activity.ParticipationStatus"
+                }
+            }
+        },
+        "activity.ParticipationStatus": {
+            "type": "string",
+            "enum": [
+                "enrolled",
+                "attended",
+                "completed",
+                "missed",
+                "cancelled"
+            ],
+            "x-enum-comments": {
+                "ParticipationStatusAttended": "посетил",
+                "ParticipationStatusCancelled": "отменил участие",
+                "ParticipationStatusCompleted": "выполнил",
+                "ParticipationStatusEnrolled": "записан",
+                "ParticipationStatusMissed": "пропустил"
+            },
+            "x-enum-descriptions": [
+                "записан",
+                "посетил",
+                "выполнил",
+                "пропустил",
+                "отменил участие"
+            ],
+            "x-enum-varnames": [
+                "ParticipationStatusEnrolled",
+                "ParticipationStatusAttended",
+                "ParticipationStatusCompleted",
+                "ParticipationStatusMissed",
+                "ParticipationStatusCancelled"
+            ]
+        },
+        "activity.UpdateActivityRequest": {
+            "type": "object",
+            "properties": {
+                "deadline": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "max_participants": {
+                    "type": "integer"
+                },
+                "online_link": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "enum": [
+                        "active",
+                        "completed",
+                        "cancelled",
+                        "draft"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/activity.ActivityStatus"
+                        }
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "class",
+                        "workshop",
+                        "meeting",
+                        "task",
+                        "project",
+                        "event"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/activity.ActivityType"
+                        }
+                    ]
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
         "auth.AuthResponse": {
             "type": "object",
             "properties": {
