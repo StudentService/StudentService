@@ -589,6 +589,126 @@ definitions:
       title:
         type: string
     type: object
+  dashboard.ActiveChallenge:
+    properties:
+      days_left:
+        type: integer
+      end_date:
+        type: string
+      goal:
+        type: string
+      id:
+        type: string
+      progress:
+        description: 0-100
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  dashboard.DashboardResponse:
+    properties:
+      active_challenges:
+        items:
+          $ref: '#/definitions/dashboard.ActiveChallenge'
+        type: array
+      questionnaire_status:
+        $ref: '#/definitions/dashboard.QuestionnaireStatus'
+      recent_grades:
+        items:
+          $ref: '#/definitions/dashboard.RecentGrade'
+        type: array
+      statistics:
+        $ref: '#/definitions/dashboard.Statistics'
+      student_info:
+        $ref: '#/definitions/dashboard.StudentInfo'
+      upcoming_events:
+        items:
+          $ref: '#/definitions/dashboard.UpcomingEvent'
+        type: array
+    type: object
+  dashboard.QuestionnaireStatus:
+    properties:
+      comment:
+        type: string
+      reviewed_at:
+        type: string
+      status:
+        description: draft, submitted, approved, rejected
+        type: string
+      submitted_at:
+        type: string
+    type: object
+  dashboard.RecentGrade:
+    properties:
+      course_name:
+        type: string
+      date:
+        type: string
+      id:
+        type: string
+      is_passed:
+        description: значение >= порога
+        type: boolean
+      max_value:
+        type: number
+      type:
+        description: exam, test, homework, etc
+        type: string
+      value:
+        type: number
+    type: object
+  dashboard.Statistics:
+    properties:
+      average_grade:
+        type: number
+      completed_challenges:
+        type: integer
+      total_challenges:
+        type: integer
+      total_points:
+        type: integer
+      upcoming_events_count:
+        type: integer
+    type: object
+  dashboard.StudentInfo:
+    properties:
+      avatar_url:
+        type: string
+      course_name:
+        type: string
+      group_name:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      semester:
+        type: string
+    type: object
+  dashboard.UpcomingEvent:
+    properties:
+      end_time:
+        type: string
+      id:
+        type: string
+      is_today:
+        type: boolean
+      is_tomorrow:
+        type: boolean
+      location:
+        type: string
+      online_link:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+      type:
+        description: class, meeting, deadline, etc
+        type: string
+    type: object
   grade.CourseSummary:
     properties:
       average:
@@ -1760,6 +1880,33 @@ paths:
       summary: Получение списка личных вызовов
       tags:
       - challenges
+  /dashboard:
+    get:
+      description: Возвращает сводную информацию для главной страницы студента
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dashboard.DashboardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение дашборда студента
+      tags:
+      - dashboard
   /grades/{id}:
     delete:
       description: Удаляет оценку

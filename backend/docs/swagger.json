@@ -1390,6 +1390,49 @@
                 }
             }
         },
+        "/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает сводную информацию для главной страницы студента",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Получение дашборда студента",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dashboard.DashboardResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/grades/my": {
             "get": {
                 "security": [
@@ -3242,6 +3285,187 @@
                     "$ref": "#/definitions/challenge.Status"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard.ActiveChallenge": {
+            "type": "object",
+            "properties": {
+                "days_left": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "goal": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "progress": {
+                    "description": "0-100",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard.DashboardResponse": {
+            "type": "object",
+            "properties": {
+                "active_challenges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dashboard.ActiveChallenge"
+                    }
+                },
+                "questionnaire_status": {
+                    "$ref": "#/definitions/dashboard.QuestionnaireStatus"
+                },
+                "recent_grades": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dashboard.RecentGrade"
+                    }
+                },
+                "statistics": {
+                    "$ref": "#/definitions/dashboard.Statistics"
+                },
+                "student_info": {
+                    "$ref": "#/definitions/dashboard.StudentInfo"
+                },
+                "upcoming_events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dashboard.UpcomingEvent"
+                    }
+                }
+            }
+        },
+        "dashboard.QuestionnaireStatus": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "reviewed_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "draft, submitted, approved, rejected",
+                    "type": "string"
+                },
+                "submitted_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard.RecentGrade": {
+            "type": "object",
+            "properties": {
+                "course_name": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_passed": {
+                    "description": "значение \u003e= порога",
+                    "type": "boolean"
+                },
+                "max_value": {
+                    "type": "number"
+                },
+                "type": {
+                    "description": "exam, test, homework, etc",
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "dashboard.Statistics": {
+            "type": "object",
+            "properties": {
+                "average_grade": {
+                    "type": "number"
+                },
+                "completed_challenges": {
+                    "type": "integer"
+                },
+                "total_challenges": {
+                    "type": "integer"
+                },
+                "total_points": {
+                    "type": "integer"
+                },
+                "upcoming_events_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dashboard.StudentInfo": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "course_name": {
+                    "type": "string"
+                },
+                "group_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "semester": {
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard.UpcomingEvent": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_today": {
+                    "type": "boolean"
+                },
+                "is_tomorrow": {
+                    "type": "boolean"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "online_link": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "class, meeting, deadline, etc",
                     "type": "string"
                 }
             }

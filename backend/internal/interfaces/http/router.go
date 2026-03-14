@@ -9,7 +9,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "backend/docs" // подключаем сгенерированные docs
+	_ "backend/docs"
 
 	"backend/internal/application"
 	"backend/internal/interfaces/http/handlers"
@@ -19,13 +19,11 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// Настройка CORS
 	r.Use(cors.New(cors.Config{
-		// Разрешенные origins (можно указать несколько)
 		AllowOrigins: []string{
-			"http://localhost:5173", // Vite dev server
+			"http://localhost:5173",
 			"http://127.0.0.1:5173",
-			"http://localhost:3000", // Если вдруг другой порт
+			"http://localhost:3000",
 			"http://127.0.0.1:3000",
 		},
 		// Разрешенные методы
@@ -53,11 +51,11 @@ func SetupRouter() *gin.Engine {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	// Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Репозитории
 	userRepo := &repositories.UserRepository{}
+	semesterRepo := &repositories.SemesterRepository{}
 	courseRepo := &repositories.CourseRepository{}
 	groupRepo := &repositories.GroupRepository{}
 	calendarRepo := &repositories.CalendarRepository{}
@@ -74,6 +72,17 @@ func SetupRouter() *gin.Engine {
 	gradeService := application.NewGradeService(gradeRepo, userRepo, courseRepo)
 	questionnaireService := application.NewQuestionnaireService(questionnaireRepo, userRepo)
 	activityService := application.NewActivityService(activityRepo, userRepo, courseRepo, groupRepo)
+	dashboardService := application.NewDashboardService(
+		userRepo,
+		calendarRepo,
+		challengeRepo,
+		gradeRepo,
+		questionnaireRepo,
+		activityRepo,
+		groupRepo,
+		courseRepo,
+		semesterRepo,
+	)
 
 	// Хендлеры
 	userHandler := handlers.NewUserHandler(userService)
@@ -83,6 +92,7 @@ func SetupRouter() *gin.Engine {
 	gradeHandler := handlers.NewGradeHandler(gradeService)
 	questionnaireHandler := handlers.NewQuestionnaireHandler(questionnaireService)
 	activityHandler := handlers.NewActivityHandler(activityService)
+	dashboardHandler := handlers.NewDashboardHandler(dashboardService)
 
 	// Публичные маршруты (без аутентификации)
 	auth := r.Group("/api/v1/auth")
@@ -97,6 +107,9 @@ func SetupRouter() *gin.Engine {
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddleware())
 	{
+		// Дашборд (главная страница)
+		api.GET("/dashboard", dashboardHandler.GetStudentDashboard)
+
 		// Профиль текущего пользователя
 		api.GET("/users/me", userHandler.GetMe)
 		api.PATCH("/users/me", userHandler.UpdateMe)
@@ -157,11 +170,11 @@ func SetupRouter() *gin.Engine {
 			activities.POST("/:activityId/enroll", activityHandler.Enroll)
 			activities.DELETE("/:activityId/enroll", activityHandler.CancelEnrollment)
 
-			// Для преподавателей/админов
+			// Для преподавателей/админов - меняем :id на :activityId для консистентности
 			activities.POST("", activityHandler.CreateActivity)
-			activities.PATCH("/:id", activityHandler.UpdateActivity)
-			activities.DELETE("/:id", activityHandler.DeleteActivity)
-			activities.GET("/:id/participants", activityHandler.GetActivityParticipants)
+			activities.PATCH("/:activityId", activityHandler.UpdateActivity)                     // было :id, стало :activityId
+			activities.DELETE("/:activityId", activityHandler.DeleteActivity)                    // было :id, стало :activityId
+			activities.GET("/:activityId/participants", activityHandler.GetActivityParticipants) // было :id, стало :activityId
 		}
 	}
 

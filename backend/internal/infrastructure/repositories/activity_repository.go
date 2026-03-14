@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
