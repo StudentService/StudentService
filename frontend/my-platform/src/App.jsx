@@ -1,64 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
 import Dashboard from './pages/Dashboard';
-import Challenges from './pages/Challenges';
-
-// Компонент-защитник: не дает войти в систему без токена
-const ProtectedRoute = ({ children }) => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        return <Navigate to="/login" replace />;
-    }
-    return children;
-};
-
-// Компонент-инвертор: не дает зайти на логин/регистрацию, если уже авторизован
-const PublicRoute = ({ children }) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-        return <Navigate to="/dashboard" replace />;
-    }
-    return children;
-};
-
+import ProfilePage from './pages/ProfilePage';
+import QuestionnairePage from './pages/QuestionnairePage'; // Импорт
+import ChallengesPage from './pages/ChallengesPage'; // Импорт
+import LoginPage from './pages/LoginPage';
+import CalendarPage from "./pages/CalendarPage.jsx";
+import GradesPage from "./pages/GradesPage.jsx";
+import ActivitiesPage from "./pages/ActivitiesPage.jsx";
 function App() {
     return (
-        <BrowserRouter>
+        <Router>
             <Routes>
-                {/* Публичные страницы: логин и регистрация */}
-                <Route path="/login" element={
-                    <PublicRoute>
-                        <LoginPage />
-                    </PublicRoute>
-                } />
-                <Route path="/register" element={
-                    <PublicRoute>
-                        <RegisterPage />
-                    </PublicRoute>
-                } />
+                <Route path="/login" element={<LoginPage />} />
 
-                {/* Защищенная часть приложения */}
-                <Route
-                    element={
-                        <ProtectedRoute>
-                            <MainLayout />
-                        </ProtectedRoute>
-                    }
-                >
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/students" element={<div className="p-8 text-xl">Страница студентов</div>} />
-                    <Route path="/metrics" element={<div className="p-8 text-xl">Конструктор метрик</div>} />
-                    <Route path="/challenges" element={<Challenges />} />
-                    {/* Редирект по умолчанию на дашборд */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<MainLayout />}>
+                    <Route index element={<Navigate to="/dashboard" />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="profile" element={<ProfilePage />} />
+                    <Route path="form" element={<QuestionnairePage />} />
+                    <Route path="challenges" element={<ChallengesPage />} />
+                    <Route path="calendar" element={<CalendarPage />} />
+                    <Route path="grades" element={<GradesPage />} />
+                    <Route path="activities" element={<ActivitiesPage />} />
+
                 </Route>
-
-                {/* Все неизвестные пути — на логин */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
-        </BrowserRouter>
+        </Router>
     );
 }
 

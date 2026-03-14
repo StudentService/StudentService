@@ -1,83 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { api } from '../api';
 
 const Dashboard = () => {
-    // Данные для карточек (в будущем придут из API)
-    const stats = [
-        { id: 1, label: 'Всего студентов', value: '1,284', change: '+12%', color: 'text-blue-600', bg: 'bg-blue-50' },
-        { id: 2, label: 'Активные (Ядро)', value: '312', change: '+5%', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { id: 3, label: 'Мероприятия', value: '18', change: 'в этом мес.', color: 'text-purple-600', bg: 'bg-purple-50' },
-        { id: 4, label: 'Средний балл', value: '4.2', change: '+0.3', color: 'text-amber-600', bg: 'bg-amber-50' },
-    ];
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadDashboard = async () => {
+            try {
+                const res = await api.dashboard.getSummary();
+                setData(res.data);
+            } catch (err) {
+                console.error("Dashboard load error", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadDashboard();
+    }, []);
+
+    if (loading) return <div className="p-10 font-black text-[#2D9396] animate-pulse">ЗАГРУЗКА...</div>;
+
+    const { student_info, statistics, active_challenges } = data || {};
 
     return (
-        <div className="space-y-8">
-            {/* Заголовок */}
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800">Общая аналитика</h1>
-                <p className="text-slate-500 text-sm">Добро пожаловать в систему управления Центром Развития</p>
+        <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+            {/* Баннер */}
+            <div className="bg-[#2D9396] rounded-[32px] p-10 text-white shadow-lg relative overflow-hidden">
+                <h1 className="text-4xl font-black mb-2 italic uppercase tracking-tighter">
+                    Привет, {student_info?.name?.split(' ')[0] || 'Студент'}!
+                </h1>
+                <p className="text-lg opacity-90">У тебя {active_challenges?.length || 0} активных вызовов.</p>
             </div>
 
-            {/* Сетка карточек */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat) => (
-                    <div key={stat.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-4 text-xl font-bold`}>
-                            {stat.label[0]}
-                        </div>
-                        <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-                        <div className="flex items-end justify-between mt-1">
-                            <p className="text-3xl font-bold text-slate-800">{stat.value}</p>
-                            <span className="text-emerald-500 text-xs font-bold mb-1">{stat.change}</span>
-                        </div>
-                    </div>
-                ))}
+            {/* Метрики */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <MetricCard title="Ядро" subtitle={student_info?.group_name} icon="🏆" badge="Текущий" />
+                <MetricCard title="Прогресс" value={statistics?.total_points} icon="🎯" progress={68} />
+                <MetricCard title={statistics?.average_grade || 0} subtitle="Средний балл" icon="📈" />
             </div>
 
-            {/* Секция с графиками (Визуализация из ТЗ) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Большая карточка: Активность */}
-                <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-slate-800">Динамика набора баллов</h3>
-                        <select className="text-sm bg-slate-50 border-none rounded-lg p-1 outline-none">
-                            <option>За неделю</option>
-                            <option>За месяц</option>
-                        </select>
-                    </div>
-                    <div className="h-64 bg-slate-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200">
-                        <span className="text-slate-400 italic">Здесь будет график LineChart (Chart.js / Recharts)</span>
-                    </div>
-                </div>
-
-                {/* Малая карточка: Сегментация (Ядро/Актив/Аура) */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center">
-                    <h3 className="font-bold text-slate-800 mb-6 text-left">Сегментация</h3>
-                    <div className="relative inline-flex items-center justify-center mb-6">
-                        {/* Имитация кругового графика через CSS */}
-                        <div className="w-40 h-40 rounded-full border-[12px] border-blue-600 border-t-emerald-500 border-l-amber-400 rotate-45"></div>
-                        <div className="absolute flex flex-col items-center">
-                            <span className="text-2xl font-bold text-slate-800">100%</span>
-                            <span className="text-[10px] text-slate-400 uppercase font-bold">Студентов</span>
+            {/* Активные вызовы */}
+            <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+                <h2 className="text-xl font-black text-slate-800 uppercase italic mb-8">Активные вызовы</h2>
+                <div className="space-y-6">
+                    {active_challenges?.map(ch => (
+                        <div key={ch.id} className="group">
+                            <div className="flex justify-between items-end mb-2">
+                                <div>
+                                    <h4 className="font-bold text-slate-800">{ch.title}</h4>
+                                    <span className="text-slate-400 text-[10px] font-bold uppercase">Осталось дней: {ch.days_left}</span>
+                                </div>
+                                <span className="font-black text-[#2D9396]">{ch.progress}%</span>
+                            </div>
+                            <div className="h-2 bg-slate-50 rounded-full overflow-hidden">
+                                <div className="h-full bg-[#2D9396]" style={{ width: `${ch.progress}%` }}></div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="space-y-2 text-left">
-                        <div className="flex justify-between text-sm italic">
-                            <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Ядро</span>
-                            <span className="font-bold">24%</span>
-                        </div>
-                        <div className="flex justify-between text-sm italic">
-                            <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-600"></div> Актив</span>
-                            <span className="font-bold">56%</span>
-                        </div>
-                        <div className="flex justify-between text-sm italic">
-                            <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-400"></div> Аура</span>
-                            <span className="font-bold">20%</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>
     );
 };
+
+const MetricCard = ({ title, subtitle, icon, progress, badge, value }) => (
+    <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm relative">
+        <div className="flex justify-between items-start mb-4">
+            <div className="text-2xl">{icon}</div>
+            {badge && <span className="bg-[#2D9396] text-white text-[10px] px-3 py-1 rounded-lg font-black uppercase">{badge}</span>}
+        </div>
+        <h3 className="text-3xl font-black text-slate-800">{title}</h3>
+        {subtitle && <p className="text-slate-400 text-[10px] font-black uppercase mt-1">{subtitle}</p>}
+        {progress && (
+            <div className="mt-4 h-1.5 bg-slate-50 rounded-full overflow-hidden">
+                <div className="h-full bg-[#FF7A50]" style={{ width: `${progress}%` }}></div>
+            </div>
+        )}
+    </div>
+);
 
 export default Dashboard;

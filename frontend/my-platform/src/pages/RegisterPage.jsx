@@ -1,86 +1,92 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../api/axios';
+import { api } from '../api';
 
 const RegisterPage = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        email: '',
         first_name: '',
         last_name: '',
         username: '',
+        email: '',
         password: '',
-        role: 'student'
+        role: 'student' // Значение по умолчанию
     });
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-
         try {
-            const response = await api.post('/auth/register', formData);
-            // После регистрации бэкенд возвращает вложенный объект token
-            const token = response.data.token?.access_token;
+            const response = await api.auth.register(formData);
+            // Согласно твоему Swagger: ответ содержит { token: { access_token... }, user: { ... } }
+            const { token, user } = response.data.data || response.data;
 
-            if (token) {
-                localStorage.setItem('access_token', token);
+            if (token?.access_token) {
+                localStorage.setItem('access_token', token.access_token);
+                localStorage.setItem('user_data', JSON.stringify(user));
                 navigate('/dashboard');
             }
         } catch (err) {
-            setError(err.response?.data?.error || 'Ошибка регистрации. Попробуйте другой логин.');
+            alert(err.response?.data?.error || "Ошибка при регистрации");
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
-            <div className="w-full max-w-[500px] bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
-                <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Создать профиль</h1>
-                    <p className="text-slate-500 text-sm mt-1">Присоединяйтесь к кадровому резерву</p>
-                </div>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+            <div className="max-w-md w-full bg-white rounded-[40px] border border-slate-200 p-10 shadow-sm">
+                <h2 className="text-3xl font-black text-slate-900 uppercase italic mb-8">
+                    Создать <span className="text-brand">аккаунт</span>
+                </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100 italic">{error}</div>}
-
                     <div className="grid grid-cols-2 gap-4">
                         <input
-                            type="text" required placeholder="Имя"
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                            onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                            placeholder="Имя"
+                            className="p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm"
+                            onChange={e => setFormData({...formData, first_name: e.target.value})}
+                            required
                         />
                         <input
-                            type="text" required placeholder="Фамилия"
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                            onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                            placeholder="Фамилия"
+                            className="p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm"
+                            onChange={e => setFormData({...formData, last_name: e.target.value})}
+                            required
                         />
                     </div>
-
                     <input
-                        type="text" required placeholder="Логин (username)"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        onChange={(e) => setFormData({...formData, username: e.target.value})}
+                        placeholder="Username"
+                        className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm"
+                        onChange={e => setFormData({...formData, username: e.target.value})}
+                        required
                     />
-
                     <input
-                        type="email" required placeholder="Email"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        type="email"
+                        placeholder="Email"
+                        className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm"
+                        onChange={e => setFormData({...formData, email: e.target.value})}
+                        required
                     />
-
                     <input
-                        type="password" required placeholder="Пароль"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        type="password"
+                        placeholder="Пароль"
+                        className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm"
+                        onChange={e => setFormData({...formData, password: e.target.value})}
+                        required
                     />
+                    <select
+                        className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm text-slate-500"
+                        onChange={e => setFormData({...formData, role: e.target.value})}
+                    >
+                        <option value="student">Студент</option>
+                        <option value="teacher">Преподаватель</option>
+                    </select>
 
-                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
+                    <button type="submit" className="w-full bg-brand text-white p-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-brand/20 mt-4">
                         Зарегистрироваться
                     </button>
                 </form>
 
-                <p className="mt-8 text-center text-sm text-slate-500">
-                    Уже есть аккаунт? <Link to="/login" className="text-blue-600 font-bold hover:underline">Войти</Link>
+                <p className="text-center mt-6 text-slate-400 font-bold text-xs uppercase">
+                    Уже есть аккаунт? <Link to="/login" className="text-brand">Войти</Link>
                 </p>
             </div>
         </div>

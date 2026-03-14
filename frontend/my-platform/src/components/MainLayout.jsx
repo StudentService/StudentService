@@ -12,7 +12,7 @@ const MainLayout = () => {
         { name: 'Анкета', path: '/form', icon: '📄' },
         { name: 'Вызовы', path: '/challenges', icon: '🎯' },
         { name: 'Календарь', path: '/calendar', icon: '📅' },
-        { name: 'Успеваемость', path: '/stats', icon: '📈' },
+        { name: 'Успеваемость', path: '/grades', icon: '📈' },
         { name: 'Активности', path: '/activities', icon: '⚡' },
         { name: 'Метрики', path: '/metrics', icon: '📊' },
     ];
