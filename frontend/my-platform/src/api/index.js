@@ -11,14 +11,9 @@ export const api = {
     dashboard: {
         getSummary: () => apiAxios.get('/dashboard'),
     },
-    questionnaires: {
-        getMy: () => apiAxios.get('/questionnaire/my'),
-        getTemplate: () => apiAxios.get('/questionnaire/template'),
-        submit: (answers) => apiAxios.post('/questionnaire/submit', { answers }),
-    },
     challenges: {
-        getMy: () => apiAxios.get('/challenges/my'),
-        getAllAvailable: () => apiAxios.get('/activities/available'),
+        getMy: () => apiAxios.get('/challenges'), // Метод GetMyChallenges
+        create: (data) => apiAxios.post('/challenges', data), // Метод CreateChallenge
     },
     events: {
         getStats: () => apiAxios.get('/dashboard'), // В твоем эндпоинте dashboard есть upcoming_events_count
@@ -34,5 +29,11 @@ export const api = {
         getAvailable: () => apiAxios.get('/activities/available'),
         join: (activityId) => apiAxios.post(`/activities/${activityId}/join`),
         leave: (activityId) => apiAxios.delete(`/activities/${activityId}/leave`),
+    },
+    questionnaires: {
+        getTemplate: () => apiAxios.get('/questionnaire/template'),
+        submit: (data) => apiAxios.post('/questionnaire/submit', {
+            answers: data // бэкенд обычно ждет массив объектов в поле answers
+        }),
     }
 };
