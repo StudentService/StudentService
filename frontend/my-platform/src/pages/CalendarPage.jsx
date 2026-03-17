@@ -9,11 +9,22 @@ const CalendarPage = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                // Здесь мы можем тянуть данные из API
-                // Для примера используем dashboard или специальный эндпоинт событий
-                const res = await api.dashboard.getSummary();
-                // Если API отдает массив событий, сохраняем его
-                setEvents(res.data.upcoming_events || []);
+                const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+                const res = await api.calendar.getEvents(
+                    startOfMonth.toISOString(),
+                    endOfMonth.toISOString()
+                );
+
+                // Преобразуем данные
+                const eventsData = res.data || [];
+                const formattedEvents = eventsData.map(event => ({
+                    ...event,
+                    time: new Date(event.start_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                }));
+
+                setEvents(formattedEvents);
             } catch (err) {
                 console.error("Ошибка загрузки календаря:", err);
             } finally {
@@ -21,13 +32,13 @@ const CalendarPage = () => {
             }
         };
         fetchEvents();
-    }, []);
+    }, [currentDate]);
 
     const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
     const days = [];
-    // Пустые ячейки для начала месяца (смещение)
+    // Пустые ячейки для начала месяца (смещение для понедельника)
     for (let i = 0; i < (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1); i++) {
         days.push(null);
     }
@@ -57,6 +68,12 @@ const CalendarPage = () => {
                         ←
                     </button>
                     <button
+                        onClick={() => setCurrentDate(new Date())}
+                        className="p-3 bg-white border border-slate-100 rounded-2xl hover:bg-slate-50 text-[10px] font-black uppercase px-4"
+                    >
+                        Сегодня
+                    </button>
+                    <button
                         onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
                         className="p-3 bg-white border border-slate-100 rounded-2xl hover:bg-slate-50"
                     >
@@ -74,24 +91,27 @@ const CalendarPage = () => {
                         ))}
                     </div>
                     <div className="grid grid-cols-7 gap-2">
-                        {days.map((day, idx) => (
-                            <div
-                                key={idx}
-                                className={`
-                                    h-16 md:h-24 rounded-2xl flex flex-col items-center justify-center relative transition-all
-                                    ${day ? 'bg-slate-50 hover:bg-[#2D9396]/10 cursor-pointer' : 'bg-transparent'}
-                                    ${day === new Date().getDate() && currentDate.getMonth() === new Date().getMonth() ? 'ring-2 ring-[#2D9396] bg-white' : ''}
-                                `}
-                            >
-                                <span className={`font-bold ${day === new Date().getDate() ? 'text-[#2D9396]' : 'text-slate-700'}`}>
-                                    {day}
-                                </span>
-                                {/* Маркер события */}
-                                {day % 7 === 0 && day !== null && (
-                                    <div className="absolute bottom-2 w-1.5 h-1.5 bg-[#FF7A50] rounded-full"></div>
-                                )}
-                            </div>
-                        ))}
+                        {days.map((day, idx) => {
+                            const hasEvent = day && events.some(e => new Date(e.start_time).getDate() === day);
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`
+                                        h-16 md:h-24 rounded-2xl flex flex-col items-center justify-center relative transition-all
+                                        ${day ? 'bg-slate-50 hover:bg-[#2D9396]/10 cursor-pointer' : 'bg-transparent'}
+                                        ${day === new Date().getDate() && currentDate.getMonth() === new Date().getMonth() ? 'ring-2 ring-[#2D9396] bg-white' : ''}
+                                    `}
+                                >
+                                    <span className={`font-bold ${day === new Date().getDate() ? 'text-[#2D9396]' : 'text-slate-700'}`}>
+                                        {day}
+                                    </span>
+                                    {/* Маркер события */}
+                                    {hasEvent && (
+                                        <div className="absolute bottom-2 w-1.5 h-1.5 bg-[#FF7A50] rounded-full"></div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -99,7 +119,7 @@ const CalendarPage = () => {
                 <div className="space-y-6">
                     <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">Ближайшие события</h2>
                     <div className="space-y-4">
-                        {events.length > 0 ? events.map((event, i) => (
+                        {events.length > 0 ? events.slice(0, 5).map((event, i) => (
                             <div key={i} className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:translate-x-1 transition-transform cursor-pointer">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-[10px] font-black text-[#2D9396] uppercase bg-[#2D9396]/10 px-3 py-1 rounded-lg">

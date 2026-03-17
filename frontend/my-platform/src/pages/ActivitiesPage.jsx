@@ -3,16 +3,32 @@ import { api } from '../api';
 
 const ActivitiesPage = () => {
     const [activities, setActivities] = useState([]);
-    const [filter, setFilter] = useState('all'); // 'all' или 'available'
+    const [filter, setFilter] = useState('available'); // 'all' или 'available'
     const [loading, setLoading] = useState(true);
 
     const fetchActivities = async () => {
         try {
             setLoading(true);
-            const res = filter === 'all'
-                ? await api.activities.getAll()
-                : await api.activities.getAvailable();
-            setActivities(res.data.data || res.data || []);
+            let res;
+            if (filter === 'all') {
+                // Только для админа
+                res = await api.activities.getAll();
+            } else {
+                res = await api.activities.getAvailable();
+            }
+
+            // Преобразуем данные с бэкенда в формат для фронта
+            const activitiesData = res.data || [];
+            const formattedActivities = activitiesData.map(act => ({
+                ...act,
+                // Маппинг полей
+                category: act.type, // используем type как category
+                date: act.start_time || act.created_at,
+                participants_count: act.current_participants || 0,
+                is_joined: act.is_enrolled || false
+            }));
+
+            setActivities(formattedActivities);
         } catch (err) {
             console.error("Ошибка загрузки активностей:", err);
         } finally {
@@ -34,6 +50,16 @@ const ActivitiesPage = () => {
         }
     };
 
+    const handleLeave = async (id) => {
+        try {
+            await api.activities.leave(id);
+            alert("Запись отменена");
+            fetchActivities();
+        } catch (err) {
+            alert("Не удалось отменить запись");
+        }
+    };
+
     if (loading) return <div className="p-10 font-black text-[#2D9396] animate-pulse uppercase italic">Поиск событий...</div>;
 
     return (
@@ -47,16 +73,16 @@ const ActivitiesPage = () => {
                 {/* Переключатель фильтров */}
                 <div className="flex bg-slate-100 p-1.5 rounded-[20px]">
                     <button
-                        onClick={() => setFilter('all')}
-                        className={`px-6 py-2 rounded-[14px] text-[10px] font-black uppercase transition-all ${filter === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}
-                    >
-                        Все
-                    </button>
-                    <button
                         onClick={() => setFilter('available')}
                         className={`px-6 py-2 rounded-[14px] text-[10px] font-black uppercase transition-all ${filter === 'available' ? 'bg-white text-[#2D9396] shadow-sm' : 'text-slate-400'}`}
                     >
                         Доступные
+                    </button>
+                    <button
+                        onClick={() => setFilter('all')}
+                        className={`px-6 py-2 rounded-[14px] text-[10px] font-black uppercase transition-all ${filter === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}
+                    >
+                        Все
                     </button>
                 </div>
             </header>
@@ -68,7 +94,7 @@ const ActivitiesPage = () => {
                         <div className="p-8 pb-0">
                             <div className="flex justify-between items-start mb-6">
                                 <span className="bg-slate-50 text-slate-400 text-[9px] font-black uppercase px-3 py-1.5 rounded-lg tracking-widest">
-                                    {act.category || 'Общее'}
+                                    {act.category || act.type || 'Общее'}
                                 </span>
                                 <div className="flex flex-col items-end">
                                     <span className="text-[#FF7A50] font-black text-lg">+{act.points || 0}</span>
@@ -87,29 +113,38 @@ const ActivitiesPage = () => {
                         {/* Детали */}
                         <div className="px-8 py-6 bg-slate-50/50 space-y-3">
                             <div className="flex items-center gap-3 text-slate-500 font-bold text-[11px]">
-                                <span className="opacity-50">📅</span> {new Date(act.date).toLocaleDateString()}
+                                <span className="opacity-50">📅</span> {act.date ? new Date(act.date).toLocaleDateString() : 'Дата не указана'}
                             </div>
                             <div className="flex items-center gap-3 text-slate-500 font-bold text-[11px]">
                                 <span className="opacity-50">📍</span> {act.location || 'Главный корпус'}
                             </div>
                             <div className="flex items-center gap-3 text-slate-500 font-bold text-[11px]">
-                                <span className="opacity-50">👥</span> Мест: {act.participants_count} / {act.max_participants}
+                                <span className="opacity-50">👥</span> Мест: {act.participants_count || 0} / {act.max_participants || '∞'}
                             </div>
                         </div>
 
                         {/* Кнопка записи */}
                         <div className="p-6">
-                            <button
-                                onClick={() => handleJoin(act.id)}
-                                disabled={act.is_joined || act.participants_count >= act.max_participants}
-                                className={`w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${
-                                    act.is_joined
-                                        ? 'bg-green-50 text-green-500 border border-green-100'
-                                        : 'bg-[#2D9396] text-white shadow-lg shadow-[#2D9396]/20 hover:scale-[1.02] active:scale-95'
-                                }`}
-                            >
-                                {act.is_joined ? 'Вы участвуете' : 'Записаться'}
-                            </button>
+                            {act.is_joined ? (
+                                <button
+                                    onClick={() => handleLeave(act.id)}
+                                    className="w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 transition-all"
+                                >
+                                    Отменить запись
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handleJoin(act.id)}
+                                    disabled={act.participants_count >= act.max_participants}
+                                    className={`w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${
+                                        act.participants_count >= act.max_participants
+                                            ? 'bg-slate-50 text-slate-400 cursor-not-allowed'
+                                            : 'bg-[#2D9396] text-white shadow-lg shadow-[#2D9396]/20 hover:scale-[1.02] active:scale-95'
+                                    }`}
+                                >
+                                    {act.participants_count >= act.max_participants ? 'Мест нет' : 'Записаться'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}

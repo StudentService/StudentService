@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import ProfilePage from './pages/ProfilePage';
 import QuestionnairePage from './pages/QuestionnairePage'; // Импорт
 import ChallengesPage from './pages/ChallengesPage'; // Импорт
+import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import CalendarPage from "./pages/CalendarPage.jsx";
 import GradesPage from "./pages/GradesPage.jsx";
@@ -13,6 +14,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
                 <Route path="/" element={<MainLayout />}>
                     <Route index element={<Navigate to="/dashboard" />} />

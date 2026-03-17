@@ -7,17 +7,19 @@ export const api = {
     },
     users: {
         getMe: () => apiAxios.get('/users/me'),
+        updateMe: (data) => apiAxios.patch('/users/me', data), // ДОБАВЛЕНО
     },
     dashboard: {
         getSummary: () => apiAxios.get('/dashboard'),
     },
     challenges: {
-        getMy: () => apiAxios.get('/challenges'), // Метод GetMyChallenges
-        create: (data) => apiAxios.post('/challenges', data), // Метод CreateChallenge
+        getMy: () => apiAxios.get('/challenges/my'),
+        create: (data) => apiAxios.post('/challenges', data),
     },
-    events: {
-        getStats: () => apiAxios.get('/dashboard'), // В твоем эндпоинте dashboard есть upcoming_events_count
-        getAll: () => apiAxios.get('/calendar/events'), // Предполагаемый эндпоинт для списка событий
+    calendar: {
+        getEvents: (from, to) => apiAxios.get('/calendar/events/my', {
+            params: { from, to }
+        }),
     },
     grades: {
         getSummary: () => apiAxios.get('/grades/my/summary'),
@@ -27,13 +29,14 @@ export const api = {
     activities: {
         getAll: () => apiAxios.get('/activities'),
         getAvailable: () => apiAxios.get('/activities/available'),
-        join: (activityId) => apiAxios.post(`/activities/${activityId}/join`),
-        leave: (activityId) => apiAxios.delete(`/activities/${activityId}/leave`),
+        getMy: () => apiAxios.get('/activities/my'),
+        join: (activityId) => apiAxios.post(`/activities/${activityId}/enroll`),
+        leave: (activityId) => apiAxios.delete(`/activities/${activityId}/enroll`),
     },
     questionnaires: {
+        getMy: () => apiAxios.get('/questionnaire/my'), // ДОБАВЛЕНО
         getTemplate: () => apiAxios.get('/questionnaire/template'),
-        submit: (data) => apiAxios.post('/questionnaire/submit', {
-            answers: data // бэкенд обычно ждет массив объектов в поле answers
-        }),
+        submit: (data) => apiAxios.post('/questionnaire/submit', { answers: data }),
+        saveDraft: (data) => apiAxios.post('/questionnaire/draft', data), // ДОБАВЛЕНО
     }
 };
