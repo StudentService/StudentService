@@ -16,43 +16,24 @@ import (
 	"backend/internal/interfaces/http/middleware"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(rbacService *application.RBACService) *gin.Engine {
 	r := gin.Default()
 
+	// CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:5173",
 			"http://127.0.0.1:5173",
-			"http://localhost:3000",
-			"http://127.0.0.1:3000",
 			"http://localhost:5174",
 			"http://127.0.0.1:5174",
 		},
-		// Разрешенные методы
-		AllowMethods: []string{
-			"GET",
-			"POST",
-			"PUT",
-			"PATCH",
-			"DELETE",
-			"OPTIONS",
-		},
-		// Разрешенные заголовки
-		AllowHeaders: []string{
-			"Origin",
-			"Content-Type",
-			"Content-Length",
-			"Accept-Encoding",
-			"Authorization",
-			"X-CSRF-Token",
-			"X-Requested-With",
-		},
-		// Разрешаем отправку учетных данных (cookies, авторизационные заголовки)
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
-		// Максимальное время кеширования preflight запросов
-		MaxAge: 12 * time.Hour,
+		MaxAge:           12 * time.Hour,
 	}))
 
+	// Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Репозитории
@@ -68,6 +49,7 @@ func SetupRouter() *gin.Engine {
 
 	// Сервисы
 	userService := application.NewUserService(userRepo)
+	teacherService := application.NewTeacherService(userRepo, groupRepo, gradeRepo, activityRepo)
 	authService := application.NewAuthService(userRepo)
 	calendarService := application.NewCalendarService(calendarRepo, userRepo, courseRepo, groupRepo)
 	challengeService := application.NewChallengeService(challengeRepo, userRepo)
@@ -75,19 +57,13 @@ func SetupRouter() *gin.Engine {
 	questionnaireService := application.NewQuestionnaireService(questionnaireRepo, userRepo)
 	activityService := application.NewActivityService(activityRepo, userRepo, courseRepo, groupRepo)
 	dashboardService := application.NewDashboardService(
-		userRepo,
-		calendarRepo,
-		challengeRepo,
-		gradeRepo,
-		questionnaireRepo,
-		activityRepo,
-		groupRepo,
-		courseRepo,
-		semesterRepo,
+		userRepo, calendarRepo, challengeRepo, gradeRepo,
+		questionnaireRepo, activityRepo, groupRepo, courseRepo, semesterRepo,
 	)
 
 	// Хендлеры
 	userHandler := handlers.NewUserHandler(userService)
+	teacherHandler := handlers.NewTeacherHandler(teacherService)
 	authHandler := handlers.NewAuthHandler(authService)
 	calendarHandler := handlers.NewCalendarHandler(calendarService)
 	challengeHandler := handlers.NewChallengeHandler(challengeService)
@@ -96,7 +72,7 @@ func SetupRouter() *gin.Engine {
 	activityHandler := handlers.NewActivityHandler(activityService)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService)
 
-	// Публичные маршруты (без аутентификации)
+	// Публичные маршруты
 	auth := r.Group("/api/v1/auth")
 	{
 		auth.POST("/register", authHandler.Register)
@@ -105,78 +81,180 @@ func SetupRouter() *gin.Engine {
 		auth.POST("/logout", authHandler.Logout)
 	}
 
-	// Защищенные маршруты (требуют JWT)
+	// Защищённые маршруты
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddleware())
 	{
-		// Дашборд (главная страница)
-		api.GET("/dashboard", dashboardHandler.GetStudentDashboard)
+		// Дашборд
+		api.GET("/dashboard",
+			middleware.RequirePermission(rbacService, "dashboard", "read"),
+			dashboardHandler.GetStudentDashboard,
+		)
 
-		// Профиль текущего пользователя
-		api.GET("/users/me", userHandler.GetMe)
-		api.PATCH("/users/me", userHandler.UpdateMe)
-
-		// Доступ к другим пользователям (с проверкой прав)
-		api.GET("/users/:id", userHandler.GetUserByID)
+		// Профиль
+		api.GET("/users/me",
+			middleware.RequirePermission(rbacService, "profile", "read"),
+			userHandler.GetMe,
+		)
+		api.PATCH("/users/me",
+			middleware.RequirePermission(rbacService, "profile", "write"),
+			userHandler.UpdateMe,
+		)
+		api.GET("/users/:id",
+			middleware.RequirePermission(rbacService, "profile", "read"),
+			userHandler.GetUserByID,
+		)
 
 		// Календарь
 		calendar := api.Group("/calendar")
 		{
-			calendar.GET("/events/my", calendarHandler.GetMyEvents)
-			calendar.POST("/events", calendarHandler.CreateEvent)       // для преподавателей/админов
-			calendar.PATCH("/events/:id", calendarHandler.UpdateEvent)  // для создателя/админа
-			calendar.DELETE("/events/:id", calendarHandler.DeleteEvent) // для создателя/админа
+			calendar.GET("/events/my",
+				middleware.RequirePermission(rbacService, "calendar", "read"),
+				calendarHandler.GetMyEvents,
+			)
+			calendar.POST("/events",
+				middleware.RequirePermission(rbacService, "calendar", "write"),
+				calendarHandler.CreateEvent,
+			)
+			calendar.PATCH("/events/:id",
+				middleware.RequirePermission(rbacService, "calendar", "write"),
+				calendarHandler.UpdateEvent,
+			)
+			calendar.DELETE("/events/:id",
+				middleware.RequirePermission(rbacService, "calendar", "write"),
+				calendarHandler.DeleteEvent,
+			)
 		}
 
 		// Личные вызовы
-		api.GET("/challenges/my", challengeHandler.GetMyChallenges)
-		api.GET("/challenges/:id", challengeHandler.GetChallengeByID)
-		api.POST("/challenges", challengeHandler.CreateChallenge)
-		api.PATCH("/challenges/:id", challengeHandler.UpdateChallenge)
-		api.DELETE("/challenges/:id", challengeHandler.DeleteChallenge)
+		challenges := api.Group("/challenges")
+		{
+			challenges.GET("/my",
+				middleware.RequirePermission(rbacService, "challenge", "read"),
+				challengeHandler.GetMyChallenges,
+			)
+			challenges.GET("/:id",
+				middleware.RequirePermission(rbacService, "challenge", "read"),
+				challengeHandler.GetChallengeByID,
+			)
+			challenges.POST("",
+				middleware.RequirePermission(rbacService, "challenge", "write"),
+				challengeHandler.CreateChallenge,
+			)
+			challenges.PATCH("/:id",
+				middleware.RequirePermission(rbacService, "challenge", "write"),
+				challengeHandler.UpdateChallenge,
+			)
+			challenges.DELETE("/:id",
+				middleware.RequirePermission(rbacService, "challenge", "delete"),
+				challengeHandler.DeleteChallenge,
+			)
+		}
 
-		// Оценки и успеваемость
+		// Оценки
 		grades := api.Group("/grades")
 		{
-			// Для студента
-			grades.GET("/my", gradeHandler.GetMyGrades)
-			grades.GET("/my/summary", gradeHandler.GetMySummary)
-			grades.GET("/my/period", gradeHandler.GetMyGradesByPeriod)
-			grades.GET("/my/courses/:courseId", gradeHandler.GetMyGradesByCourse)
-
-			// Для преподавателя (управление)
-			grades.POST("/students/:studentId", gradeHandler.CreateGrade)
-			grades.PATCH("/:id", gradeHandler.UpdateGrade)
-			grades.DELETE("/:id", gradeHandler.DeleteGrade)
+			grades.GET("/my",
+				middleware.RequirePermission(rbacService, "grade", "read"),
+				gradeHandler.GetMyGrades,
+			)
+			grades.GET("/my/summary",
+				middleware.RequirePermission(rbacService, "grade", "read"),
+				gradeHandler.GetMySummary,
+			)
+			grades.GET("/my/period",
+				middleware.RequirePermission(rbacService, "grade", "read"),
+				gradeHandler.GetMyGradesByPeriod,
+			)
+			grades.GET("/my/courses/:courseId",
+				middleware.RequirePermission(rbacService, "grade", "read"),
+				gradeHandler.GetMyGradesByCourse,
+			)
+			grades.POST("/students/:studentId",
+				middleware.RequirePermission(rbacService, "grade", "write"),
+				gradeHandler.CreateGrade,
+			)
+			grades.PATCH("/:id",
+				middleware.RequirePermission(rbacService, "grade", "write"),
+				gradeHandler.UpdateGrade,
+			)
+			grades.DELETE("/:id",
+				middleware.RequirePermission(rbacService, "grade", "delete"),
+				gradeHandler.DeleteGrade,
+			)
 		}
 
-		// Анкета-запрос
+		// Анкета
 		questionnaire := api.Group("/questionnaire")
 		{
-			questionnaire.GET("/my", questionnaireHandler.GetMyQuestionnaire)
-			questionnaire.GET("/template", questionnaireHandler.GetTemplate)
-			questionnaire.POST("/submit", questionnaireHandler.SubmitQuestionnaire)
-			questionnaire.POST("/draft", questionnaireHandler.SaveDraft)
-
-			// Админские маршруты
-			questionnaire.GET("", questionnaireHandler.ListByStatus)
-			questionnaire.POST("/:id/review", questionnaireHandler.ReviewQuestionnaire)
+			questionnaire.GET("/my",
+				middleware.RequirePermission(rbacService, "questionnaire", "read"),
+				questionnaireHandler.GetMyQuestionnaire,
+			)
+			questionnaire.GET("/template",
+				middleware.RequirePermission(rbacService, "questionnaire", "read"),
+				questionnaireHandler.GetTemplate,
+			)
+			questionnaire.POST("/submit",
+				middleware.RequirePermission(rbacService, "questionnaire", "write"),
+				questionnaireHandler.SubmitQuestionnaire,
+			)
+			questionnaire.POST("/draft",
+				middleware.RequirePermission(rbacService, "questionnaire", "write"),
+				questionnaireHandler.SaveDraft,
+			)
 		}
 
-		// Активности и участия
+		// Активности
 		activities := api.Group("/activities")
 		{
-			// Для студентов
-			activities.GET("/available", activityHandler.GetAvailableActivities)
-			activities.GET("/my", activityHandler.GetMyParticipations)
-			activities.POST("/:activityId/enroll", activityHandler.Enroll)
-			activities.DELETE("/:activityId/enroll", activityHandler.CancelEnrollment)
+			activities.GET("/available",
+				middleware.RequirePermission(rbacService, "activity", "read"),
+				activityHandler.GetAvailableActivities,
+			)
+			activities.GET("/my",
+				middleware.RequirePermission(rbacService, "activity", "read"),
+				activityHandler.GetMyParticipations,
+			)
+			activities.POST("/:activityId/enroll",
+				middleware.RequirePermission(rbacService, "activity", "enroll"),
+				activityHandler.Enroll,
+			)
+			activities.DELETE("/:activityId/enroll",
+				middleware.RequirePermission(rbacService, "activity", "enroll"),
+				activityHandler.CancelEnrollment,
+			)
+			activities.POST("",
+				middleware.RequirePermission(rbacService, "activity", "write"),
+				activityHandler.CreateActivity,
+			)
+			activities.PATCH("/:activityId",
+				middleware.RequirePermission(rbacService, "activity", "write"),
+				activityHandler.UpdateActivity,
+			)
+			activities.DELETE("/:activityId",
+				middleware.RequirePermission(rbacService, "activity", "delete"),
+				activityHandler.DeleteActivity,
+			)
+			activities.GET("/:activityId/participants",
+				middleware.RequirePermission(rbacService, "activity", "read"),
+				activityHandler.GetActivityParticipants,
+			)
+		}
 
-			// Для преподавателей/админов - меняем :id на :activityId для консистентности
-			activities.POST("", activityHandler.CreateActivity)
-			activities.PATCH("/:activityId", activityHandler.UpdateActivity)                     // было :id, стало :activityId
-			activities.DELETE("/:activityId", activityHandler.DeleteActivity)                    // было :id, стало :activityId
-			activities.GET("/:activityId/participants", activityHandler.GetActivityParticipants) // было :id, стало :activityId
+		// Преподавательские маршруты
+		teacher := api.Group("/teacher")
+		teacher.Use(middleware.RequirePermission(rbacService, "teacher", "access"))
+		{
+			teacher.GET("/dashboard", teacherHandler.GetDashboard)
+			teacher.GET("/groups", teacherHandler.GetTeacherGroups)
+			teacher.GET("/groups/:id/students", teacherHandler.GetGroupStudents)
+			teacher.GET("/groups/:id/grades", teacherHandler.GetGroupGrades)
+			teacher.GET("/students/:id", teacherHandler.GetStudentProfile)
+			teacher.GET("/students/:id/grades", teacherHandler.GetStudentGrades)
+			teacher.GET("/activities", teacherHandler.GetTeacherActivities)
+			teacher.POST("/grades/import", teacherHandler.ImportGrades)
+			teacher.POST("/activities/:id/attendance", teacherHandler.MarkAttendance)
 		}
 	}
 

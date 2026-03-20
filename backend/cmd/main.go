@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/internal/application"
 	"context"
 	"log"
 	"os"
@@ -44,8 +45,21 @@ func main() {
 	}
 	log.Println("Database connected successfully")
 
-	// Настройка и запуск сервера
-	r := http.SetupRouter()
+	// Получаем строку подключения для RBAC (используем ту же, что и для pgx)
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		dbURL = "postgres://user:pass@localhost:5431/db?sslmode=disable"
+	}
+
+	// Инициализация RBAC сервиса
+	rbacService, err := application.NewRBACService(dbURL)
+	if err != nil {
+		log.Fatalf("Failed to initialize RBAC: %v", err)
+	}
+	log.Println("RBAC service initialized successfully")
+
+	// Настройка и запуск сервера(передаём rbacService в роутер)
+	r := http.SetupRouter(rbacService)
 
 	port := os.Getenv("PORT")
 	if port == "" {

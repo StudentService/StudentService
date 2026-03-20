@@ -924,6 +924,123 @@ definitions:
       name:
         type: string
     type: object
+  teacher.ActivitySummary:
+    properties:
+      date:
+        type: string
+      id:
+        type: string
+      participants:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  teacher.AttendanceRequest:
+    properties:
+      attended:
+        type: boolean
+      student_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - student_ids
+    type: object
+  teacher.DashboardResponse:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/teacher.GroupSummary'
+        type: array
+      pending_reviews:
+        type: integer
+      recent_activities:
+        items:
+          $ref: '#/definitions/teacher.ActivitySummary'
+        type: array
+      total_students:
+        type: integer
+    type: object
+  teacher.GradeImportItem:
+    properties:
+      comment:
+        type: string
+      max_value:
+        type: number
+      student_id:
+        type: string
+      value:
+        type: number
+    required:
+    - max_value
+    - student_id
+    - value
+    type: object
+  teacher.GradeWithStudent:
+    properties:
+      comment:
+        type: string
+      date:
+        type: string
+      id:
+        type: string
+      max_value:
+        type: number
+      student_id:
+        type: string
+      student_name:
+        type: string
+      type:
+        type: string
+      value:
+        type: number
+    type: object
+  teacher.GroupSummary:
+    properties:
+      average_grade:
+        type: number
+      course_name:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      students_count:
+        type: integer
+    type: object
+  teacher.ImportGradesRequest:
+    properties:
+      activity_id:
+        type: string
+      grades:
+        items:
+          $ref: '#/definitions/teacher.GradeImportItem'
+        type: array
+      group_id:
+        type: string
+    required:
+    - grades
+    - group_id
+    type: object
+  teacher.StudentProfile:
+    properties:
+      average_grade:
+        type: number
+      email:
+        type: string
+      first_name:
+        type: string
+      group_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      total_points:
+        type: integer
+    type: object
   user.Role:
     enum:
     - student
@@ -2446,6 +2563,200 @@ paths:
       summary: Получение шаблона анкеты
       tags:
       - questionnaire
+  /teacher/activities:
+    get:
+      description: Возвращает список активностей, созданных преподавателем
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/activity.ActivityResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Активности преподавателя
+      tags:
+      - teacher
+  /teacher/activities/{id}/attendance:
+    post:
+      description: Отмечает посещаемость студентов на активности
+      parameters:
+      - description: Activity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные посещаемости
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/teacher.AttendanceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Отметка посещаемости
+      tags:
+      - teacher
+  /teacher/dashboard:
+    get:
+      description: Возвращает сводку по группам и активности
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/teacher.DashboardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Дашборд преподавателя
+      tags:
+      - teacher
+  /teacher/grades/import:
+    post:
+      consumes:
+      - application/json
+      description: Импортирует оценки из CSV/JSON
+      parameters:
+      - description: Данные для импорта
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/teacher.ImportGradesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Импорт оценок
+      tags:
+      - teacher
+  /teacher/groups:
+    get:
+      description: Возвращает список групп преподавателя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/teacher.GroupSummary'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Группы преподавателя
+      tags:
+      - teacher
+  /teacher/groups/{id}/grades:
+    get:
+      description: Возвращает все оценки студентов группы
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/teacher.GradeWithStudent'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Оценки группы
+      tags:
+      - teacher
+  /teacher/groups/{id}/students:
+    get:
+      description: Возвращает список студентов в группе
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user.UserResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Студенты группы
+      tags:
+      - teacher
+  /teacher/students/{id}:
+    get:
+      description: Возвращает профиль студента для преподавателя
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/teacher.StudentProfile'
+      security:
+      - BearerAuth: []
+      summary: Профиль студента
+      tags:
+      - teacher
+  /teacher/students/{id}/grades:
+    get:
+      description: Возвращает оценки студента
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/teacher.GradeWithStudent'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Оценки студента
+      tags:
+      - teacher
   /users/{id}:
     get:
       description: Возвращает информацию о пользователе по его ID (с проверкой прав)

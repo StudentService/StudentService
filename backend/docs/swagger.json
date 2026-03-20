@@ -2274,6 +2274,320 @@
                 }
             }
         },
+        "/teacher/activities": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список активностей, созданных преподавателем",
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Активности преподавателя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/activity.ActivityResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/activities/{id}/attendance": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Отмечает посещаемость студентов на активности",
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Отметка посещаемости",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные посещаемости",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/teacher.AttendanceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает сводку по группам и активности",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Дашборд преподавателя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/teacher.DashboardResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/grades/import": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Импортирует оценки из CSV/JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Импорт оценок",
+                "parameters": [
+                    {
+                        "description": "Данные для импорта",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/teacher.ImportGradesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список групп преподавателя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Группы преподавателя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/teacher.GroupSummary"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/groups/{id}/grades": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает все оценки студентов группы",
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Оценки группы",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/teacher.GradeWithStudent"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/groups/{id}/students": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список студентов в группе",
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Студенты группы",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user.UserResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/students/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает профиль студента для преподавателя",
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Профиль студента",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Student ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/teacher.StudentProfile"
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/students/{id}/grades": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает оценки студента",
+                "tags": [
+                    "teacher"
+                ],
+                "summary": "Оценки студента",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Student ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/teacher.GradeWithStudent"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "security": [
@@ -3774,6 +4088,184 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "teacher.ActivitySummary": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "participants": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "teacher.AttendanceRequest": {
+            "type": "object",
+            "required": [
+                "student_ids"
+            ],
+            "properties": {
+                "attended": {
+                    "type": "boolean"
+                },
+                "student_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "teacher.DashboardResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/teacher.GroupSummary"
+                    }
+                },
+                "pending_reviews": {
+                    "type": "integer"
+                },
+                "recent_activities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/teacher.ActivitySummary"
+                    }
+                },
+                "total_students": {
+                    "type": "integer"
+                }
+            }
+        },
+        "teacher.GradeImportItem": {
+            "type": "object",
+            "required": [
+                "max_value",
+                "student_id",
+                "value"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "number"
+                },
+                "student_id": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "teacher.GradeWithStudent": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "number"
+                },
+                "student_id": {
+                    "type": "string"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "teacher.GroupSummary": {
+            "type": "object",
+            "properties": {
+                "average_grade": {
+                    "type": "number"
+                },
+                "course_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "students_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "teacher.ImportGradesRequest": {
+            "type": "object",
+            "required": [
+                "grades",
+                "group_id"
+            ],
+            "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "grades": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/teacher.GradeImportItem"
+                    }
+                },
+                "group_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "teacher.StudentProfile": {
+            "type": "object",
+            "properties": {
+                "average_grade": {
+                    "type": "number"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "group_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "total_points": {
+                    "type": "integer"
                 }
             }
         },

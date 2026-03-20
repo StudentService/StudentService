@@ -11,6 +11,8 @@ type Repository interface {
 	// Для всех пользователей
 	GetAvailableActivities(ctx context.Context, userID uuid.UUID) ([]*Activity, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*Activity, error)
+	// GetByCreator получает активности, созданные пользователем
+	GetByCreator(ctx context.Context, creatorID uuid.UUID) ([]*Activity, error)
 
 	// Для студента - мои участия
 	GetMyParticipations(ctx context.Context, userID uuid.UUID) ([]*Participation, error)

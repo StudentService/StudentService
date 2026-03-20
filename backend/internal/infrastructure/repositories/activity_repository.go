@@ -538,3 +538,28 @@ func (r *ActivityRepository) scanParticipations(rows pgx.Rows) ([]*activity.Part
 
 	return participations, nil
 }
+
+// GetByCreator получает активности, созданные пользователем
+func (r *ActivityRepository) GetByCreator(ctx context.Context, creatorID uuid.UUID) ([]*activity.Activity, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, title, description, type, status,
+		       start_time, end_time, deadline,
+		       location, online_link,
+		       max_participants, current_participants,
+		       points, weight,
+		       course_id, group_id,
+		       created_by, created_by_role,
+		       created_at, updated_at
+		FROM activities
+		WHERE created_by = $1
+		ORDER BY created_at DESC
+	`, creatorID)
+
+	if err != nil {
+		log.Printf("Database error in GetByCreator: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	return r.scanActivities(rows)
+}
