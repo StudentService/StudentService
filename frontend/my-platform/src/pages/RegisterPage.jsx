@@ -1,17 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
+    const [groups, setGroups] = useState([]);
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
         username: '',
         email: '',
         password: '',
-        role: 'student' // Значение по умолчанию
+        role: 'student', // Значение по умолчанию
+        group_id: ''
     });
+
+    useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                const res = await api.groups.getAll();
+                setGroups(res.data);
+            } catch (err) {
+                console.error("Ошибка загрузки групп:", err);
+            }
+        };
+        fetchGroups();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -78,6 +92,16 @@ const RegisterPage = () => {
                     >
                         <option value="student">Студент</option>
                         <option value="teacher">Преподаватель</option>
+                    </select>
+                    <select
+                        value={formData.group_id}
+                        onChange={e => setFormData({...formData, group_id: e.target.value})}
+                        className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm text-slate-500"
+                    >
+                        <option value="">Выберите группу (опционально)</option>
+                        {groups.map(g => (
+                            <option key={g.id} value={g.id}>{g.name}</option>
+                        ))}
                     </select>
 
                     <button type="submit" className="w-full bg-brand text-white p-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-brand/20 mt-4">

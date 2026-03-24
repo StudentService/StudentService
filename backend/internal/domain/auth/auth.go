@@ -36,15 +36,16 @@ type AuthResponse struct {
 
 // RegisterRequest DTO для регистрации
 type RegisterRequest struct {
-	Username  string `json:"username" binding:"required,min=3,max=50"`
-	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required,min=6"`
-	FirstName string `json:"first_name" binding:"required"`
-	LastName  string `json:"last_name" binding:"required"`
-	Role      string `json:"role" binding:"omitempty,oneof=student teacher holder candidate"`
+	Username  string     `json:"username" binding:"required,min=3,max=50"`
+	Email     string     `json:"email" binding:"required,email"`
+	Password  string     `json:"password" binding:"required,min=6"`
+	FirstName string     `json:"first_name" binding:"required"`
+	LastName  string     `json:"last_name" binding:"required"`
+	Role      string     `json:"role" binding:"omitempty,oneof=student teacher holder candidate"`
+	GroupID   *uuid.UUID `json:"group_id,omitempty"`
 }
 
 type RegisterResponse struct {
 	User  *user.UserResponse `json:"user"`
-	Token *AuthResponse      `json:"token,omitempty"` // Изменено с *TokenPair на *AuthResponse
+	Token *AuthResponse      `json:"token,omitempty"`
 }

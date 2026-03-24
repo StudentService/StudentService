@@ -48,7 +48,9 @@ func SetupRouter(rbacService *application.RBACService) *gin.Engine {
 	activityRepo := repositories.NewActivityRepository()
 
 	// Сервисы
-	userService := application.NewUserService(userRepo)
+	userService := application.NewUserService(userRepo, groupRepo, semesterRepo)
+	groupService := application.NewGroupService(groupRepo)
+	semesterService := application.NewSemesterService(semesterRepo)
 	teacherService := application.NewTeacherService(userRepo, groupRepo, gradeRepo, activityRepo)
 	authService := application.NewAuthService(userRepo)
 	calendarService := application.NewCalendarService(calendarRepo, userRepo, courseRepo, groupRepo)
@@ -63,6 +65,8 @@ func SetupRouter(rbacService *application.RBACService) *gin.Engine {
 
 	// Хендлеры
 	userHandler := handlers.NewUserHandler(userService)
+	groupHandler := handlers.NewGroupHandler(groupService)
+	semesterHandler := handlers.NewSemesterHandler(semesterService)
 	teacherHandler := handlers.NewTeacherHandler(teacherService)
 	authHandler := handlers.NewAuthHandler(authService)
 	calendarHandler := handlers.NewCalendarHandler(calendarService)
@@ -79,6 +83,18 @@ func SetupRouter(rbacService *application.RBACService) *gin.Engine {
 		auth.POST("/login", authHandler.Login)
 		auth.POST("/refresh", authHandler.Refresh)
 		auth.POST("/logout", authHandler.Logout)
+	}
+
+	// 👇 Публичные маршруты для групп (без токена)
+	public := r.Group("/api/v1")
+	{
+		// Группы - только чтение (для регистрации)
+		public.GET("/groups", groupHandler.GetAllGroups)
+		public.GET("/groups/:id", groupHandler.GetGroupByID)
+
+		// Семестры - только чтение (опционально)
+		public.GET("/semesters", semesterHandler.GetAllSemesters)
+		public.GET("/semesters/active", semesterHandler.GetActiveSemester)
 	}
 
 	// Защищённые маршруты
@@ -104,6 +120,16 @@ func SetupRouter(rbacService *application.RBACService) *gin.Engine {
 			middleware.RequirePermission(rbacService, "profile", "read"),
 			userHandler.GetUserByID,
 		)
+
+		// CRUD операции для групп (требуют аутентификации)
+		api.POST("/groups", groupHandler.CreateGroup)
+		api.PATCH("/groups/:id", groupHandler.UpdateGroup)
+		api.DELETE("/groups/:id", groupHandler.DeleteGroup)
+
+		// CRUD операции для семестров
+		api.POST("/semesters", semesterHandler.CreateSemester)
+		api.PATCH("/semesters/:id", semesterHandler.UpdateSemester)
+		api.DELETE("/semesters/:id", semesterHandler.DeleteSemester)
 
 		// Календарь
 		calendar := api.Group("/calendar")

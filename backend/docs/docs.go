@@ -1880,6 +1880,161 @@ const docTemplate = `{
                 }
             }
         },
+        "/groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Получение всех групп",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/group.Group"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Создание группы",
+                "parameters": [
+                    {
+                        "description": "Данные группы",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/group.CreateGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/group.Group"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Получение группы по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/group.Group"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Удаление группы",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Обновление группы",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/group.UpdateGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/group.Group"
+                        }
+                    }
+                }
+            }
+        },
         "/questionnaire": {
             "get": {
                 "security": [
@@ -2280,6 +2435,157 @@ const docTemplate = `{
                 }
             }
         },
+        "/semesters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "semesters"
+                ],
+                "summary": "Получение всех семестров",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/semester.Semester"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "semesters"
+                ],
+                "summary": "Создание семестра",
+                "parameters": [
+                    {
+                        "description": "Данные семестра",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/semester.CreateSemesterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/semester.Semester"
+                        }
+                    }
+                }
+            }
+        },
+        "/semesters/active": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "semesters"
+                ],
+                "summary": "Получение активного семестра",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/semester.Semester"
+                        }
+                    }
+                }
+            }
+        },
+        "/semesters/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "semesters"
+                ],
+                "summary": "Удаление семестра",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Semester ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "semesters"
+                ],
+                "summary": "Обновление семестра",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Semester ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/semester.UpdateSemesterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/semester.Semester"
+                        }
+                    }
+                }
+            }
+        },
         "/teacher/activities": {
             "get": {
                 "security": [
@@ -2601,7 +2907,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает информацию о текущем авторизованном пользователе",
+                "description": "Возвращает информацию о текущем авторизованном пользователе с группой и семестром",
                 "produces": [
                     "application/json"
                 ],
@@ -2613,7 +2919,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.User"
+                            "$ref": "#/definitions/user.UserResponse"
                         }
                     },
                     "401": {
@@ -2693,67 +2999,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Возвращает информацию о пользователе по его ID (с проверкой прав)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Получение пользователя по ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/user.User"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3207,6 +3452,9 @@ const docTemplate = `{
                 "first_name": {
                     "type": "string"
                 },
+                "group_id": {
+                    "type": "string"
+                },
                 "last_name": {
                     "type": "string"
                 },
@@ -3234,12 +3482,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "token": {
-                    "description": "Изменено с *TokenPair на *AuthResponse",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/auth.AuthResponse"
-                        }
-                    ]
+                    "$ref": "#/definitions/auth.AuthResponse"
                 },
                 "user": {
                     "$ref": "#/definitions/user.UserResponse"
@@ -3962,6 +4205,71 @@ const docTemplate = `{
                 }
             }
         },
+        "group.CreateGroupRequest": {
+            "type": "object",
+            "required": [
+                "course_id",
+                "name",
+                "semester_id"
+            ],
+            "properties": {
+                "course_id": {
+                    "type": "string"
+                },
+                "holder_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "semester_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "group.Group": {
+            "type": "object",
+            "properties": {
+                "course_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "holder_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "semester_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "group.UpdateGroupRequest": {
+            "type": "object",
+            "properties": {
+                "course_id": {
+                    "type": "string"
+                },
+                "holder_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "semester_id": {
+                    "type": "string"
+                }
+            }
+        },
         "questionnaire.QuestionnaireResponse": {
             "type": "object",
             "properties": {
@@ -4093,6 +4401,72 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "semester.CreateSemesterRequest": {
+            "type": "object",
+            "required": [
+                "end_date",
+                "name",
+                "start_date"
+            ],
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "semester.Semester": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "например \"Осень 2026\"",
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "semester.UpdateSemesterRequest": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_date": {
                     "type": "string"
                 }
             }
@@ -4337,9 +4711,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group_id": {
+                    "description": "Информация о группе",
                     "type": "string"
                 },
-                "holder_id": {
+                "group_name": {
                     "type": "string"
                 },
                 "id": {
@@ -4350,6 +4725,19 @@ const docTemplate = `{
                 },
                 "role": {
                     "$ref": "#/definitions/user.Role"
+                },
+                "semester_end": {
+                    "type": "string"
+                },
+                "semester_id": {
+                    "description": "Информация о семестре",
+                    "type": "string"
+                },
+                "semester_name": {
+                    "type": "string"
+                },
+                "semester_start": {
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"

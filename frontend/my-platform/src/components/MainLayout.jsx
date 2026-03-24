@@ -52,7 +52,7 @@ const MainLayout = () => {
                     {/* Правая часть шапки */}
                     <div className="flex items-center gap-3">
                         <div className="text-right hidden sm:block">
-                            <p className="text-xs font-bold text-slate-800 italic uppercase">Администратор</p>
+                            <p className="text-xs font-bold text-slate-800 italic uppercase"></p>
                         </div>
                         <div className="w-9 h-9 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center text-slate-400">
                             👤

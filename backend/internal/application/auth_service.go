@@ -170,6 +170,7 @@ func (s *AuthService) Register(ctx context.Context, req *auth.RegisterRequest) (
 		Role:      role,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
+		GroupID:   req.GroupID,
 	}
 
 	// 4. Устанавливаем пароль (хешируется внутри метода)

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"time"
 
@@ -209,8 +210,7 @@ func (r *CalendarRepository) scanEvents(rows pgx.Rows) ([]*calendar.Event, error
 	for rows.Next() {
 		e := &calendar.Event{}
 		var courseID, groupID, userID *uuid.UUID
-		var courseName, groupName, creatorFirstName, creatorLastName string
-		// Эти поля нам нужны для ответа, но не для модели Event
+		var courseName, groupName, creatorFirstName, creatorLastName sql.NullString // 👈 используем sql.NullString
 
 		err := rows.Scan(
 			&e.ID, &e.Title, &e.Description, &e.Type,
@@ -229,6 +229,11 @@ func (r *CalendarRepository) scanEvents(rows pgx.Rows) ([]*calendar.Event, error
 		e.CourseID = courseID
 		e.GroupID = groupID
 		e.UserID = userID
+
+		// Сохраняем дополнительные поля (можно добавить в структуру Event при необходимости)
+		_ = courseName.String
+		_ = groupName.String
+		_ = creatorFirstName.String + " " + creatorLastName.String
 
 		events = append(events, e)
 	}

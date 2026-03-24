@@ -22,7 +22,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*user.User, er
 		FROM users WHERE id = $1
 	`, id).Scan(
 		&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.Role,
-		&u.FirstName, &u.LastName, &groupID, &u.CreatedAt, &u.UpdatedAt,
+		&u.FirstName, &u.LastName, &groupID, &u.CreatedAt, &u.UpdatedAt, // 👈 добавляем groupID
 	)
 
 	if err == pgx.ErrNoRows {

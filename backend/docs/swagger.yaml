@@ -306,6 +306,8 @@ definitions:
         type: string
       first_name:
         type: string
+      group_id:
+        type: string
       last_name:
         type: string
       password:
@@ -332,9 +334,7 @@ definitions:
   auth.RegisterResponse:
     properties:
       token:
-        allOf:
-        - $ref: '#/definitions/auth.AuthResponse'
-        description: Изменено с *TokenPair на *AuthResponse
+        $ref: '#/definitions/auth.AuthResponse'
       user:
         $ref: '#/definitions/user.UserResponse'
     type: object
@@ -831,6 +831,49 @@ definitions:
       value:
         type: number
     type: object
+  group.CreateGroupRequest:
+    properties:
+      course_id:
+        type: string
+      holder_id:
+        type: string
+      name:
+        type: string
+      semester_id:
+        type: string
+    required:
+    - course_id
+    - name
+    - semester_id
+    type: object
+  group.Group:
+    properties:
+      course_id:
+        type: string
+      created_at:
+        type: string
+      holder_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      semester_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  group.UpdateGroupRequest:
+    properties:
+      course_id:
+        type: string
+      holder_id:
+        type: string
+      name:
+        type: string
+      semester_id:
+        type: string
+    type: object
   questionnaire.QuestionnaireResponse:
     properties:
       answers:
@@ -922,6 +965,50 @@ definitions:
       is_active:
         type: boolean
       name:
+        type: string
+    type: object
+  semester.CreateSemesterRequest:
+    properties:
+      end_date:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      start_date:
+        type: string
+    required:
+    - end_date
+    - name
+    - start_date
+    type: object
+  semester.Semester:
+    properties:
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        description: например "Осень 2026"
+        type: string
+      start_date:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  semester.UpdateSemesterRequest:
+    properties:
+      end_date:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      start_date:
         type: string
     type: object
   teacher.ActivitySummary:
@@ -1085,8 +1172,9 @@ definitions:
       first_name:
         type: string
       group_id:
+        description: Информация о группе
         type: string
-      holder_id:
+      group_name:
         type: string
       id:
         type: string
@@ -1094,6 +1182,15 @@ definitions:
         type: string
       role:
         $ref: '#/definitions/user.Role'
+      semester_end:
+        type: string
+      semester_id:
+        description: Информация о семестре
+        type: string
+      semester_name:
+        type: string
+      semester_start:
+        type: string
       updated_at:
         type: string
       username:
@@ -2307,6 +2404,100 @@ paths:
       summary: Создание новой оценки (для преподавателей)
       tags:
       - grades
+  /groups:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/group.Group'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Получение всех групп
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные группы
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/group.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/group.Group'
+      security:
+      - BearerAuth: []
+      summary: Создание группы
+      tags:
+      - groups
+  /groups/{id}:
+    delete:
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удаление группы
+      tags:
+      - groups
+    get:
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/group.Group'
+      security:
+      - BearerAuth: []
+      summary: Получение группы по ID
+      tags:
+      - groups
+    patch:
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/group.UpdateGroupRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/group.Group'
+      security:
+      - BearerAuth: []
+      summary: Обновление группы
+      tags:
+      - groups
   /questionnaire:
     get:
       description: Возвращает все анкеты с указанным статусом
@@ -2563,6 +2754,97 @@ paths:
       summary: Получение шаблона анкеты
       tags:
       - questionnaire
+  /semesters:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/semester.Semester'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Получение всех семестров
+      tags:
+      - semesters
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные семестра
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/semester.CreateSemesterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/semester.Semester'
+      security:
+      - BearerAuth: []
+      summary: Создание семестра
+      tags:
+      - semesters
+  /semesters/{id}:
+    delete:
+      parameters:
+      - description: Semester ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удаление семестра
+      tags:
+      - semesters
+    patch:
+      parameters:
+      - description: Semester ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/semester.UpdateSemesterRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/semester.Semester'
+      security:
+      - BearerAuth: []
+      summary: Обновление семестра
+      tags:
+      - semesters
+  /semesters/active:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/semester.Semester'
+      security:
+      - BearerAuth: []
+      summary: Получение активного семестра
+      tags:
+      - semesters
   /teacher/activities:
     get:
       description: Возвращает список активностей, созданных преподавателем
@@ -2757,55 +3039,17 @@ paths:
       summary: Оценки студента
       tags:
       - teacher
-  /users/{id}:
-    get:
-      description: Возвращает информацию о пользователе по его ID (с проверкой прав)
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/user.User'
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Получение пользователя по ID
-      tags:
-      - users
   /users/me:
     get:
-      description: Возвращает информацию о текущем авторизованном пользователе
+      description: Возвращает информацию о текущем авторизованном пользователе с группой
+        и семестром
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.User'
+            $ref: '#/definitions/user.UserResponse'
         "401":
           description: Unauthorized
           schema:

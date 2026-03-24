@@ -3,6 +3,8 @@ import { api } from '../api';
 
 const ProfilePage = () => {
     const [user, setUser] = useState(null);
+    const [group, setGroup] = useState(null); // 👈 добавляем состояние для группы
+    const [semester, setSemester] = useState(null); // 👈 добавляем состояние для семестра
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState({});
@@ -18,6 +20,24 @@ const ProfilePage = () => {
                     last_name: userData.last_name || '',
                     username: userData.username || '',
                 });
+
+                // 👇 Если у пользователя есть группа, загружаем информацию о ней
+                if (userData.group_id) {
+                    try {
+                        const groupRes = await api.groups.getById(userData.group_id);
+                        const groupData = groupRes.data.data || groupRes.data;
+                        setGroup(groupData);
+
+                        // Если есть группа, загружаем семестр
+                        if (groupData.semester_id) {
+                            const semesterRes = await api.semesters.getById(groupData.semester_id);
+                            const semesterData = semesterRes.data.data || semesterRes.data;
+                            setSemester(semesterData);
+                        }
+                    } catch (groupErr) {
+                        console.error("Error loading group/semester:", groupErr);
+                    }
+                }
             } catch (err) {
                 console.error("Profile error", err);
             } finally {
@@ -110,6 +130,8 @@ const ProfilePage = () => {
                                 </span>
                             </div>
 
+                            
+
                             {/* Статистика */}
                             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                                 <div>
@@ -199,6 +221,27 @@ const ProfilePage = () => {
                                     <p className="text-[8px] text-slate-400 mt-2 italic">Email нельзя изменить</p>
                                 </div>
 
+                                {group && (
+                                    <div className="bg-slate-50 p-6 rounded-3xl">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Группа</p>
+                                        <p className="font-bold text-slate-700">{group.name}</p>
+                                        {semester && (
+                                            <>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase mt-3 mb-1">Семестр</p>
+                                                <p className="font-bold text-slate-700">{semester.name}</p>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+
+                                {!group && user?.group_id && (
+                                    <div className="bg-slate-50 p-6 rounded-3xl">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Группа</p>
+                                        <p className="font-bold text-slate-700">ID: {user.group_id}</p>
+                                        <p className="text-[8px] text-slate-400 mt-2 italic">Детали группы не загружены</p>
+                                    </div>
+                                )}
+
                                 <div className="flex gap-4 pt-4">
                                     <button
                                         type="submit"
@@ -239,10 +282,31 @@ const ProfilePage = () => {
                                     <p className="font-bold text-slate-700">{user?.email}</p>
                                 </div>
 
-                                <div className="bg-slate-50 p-6 rounded-3xl">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Группа</p>
-                                    <p className="font-bold text-slate-700">{user?.group_id || 'Не указана'}</p>
-                                </div>
+                                {/* Блок с группой и семестром */}
+                                {/* Блок с группой и семестром */}
+                                {user?.group_name ? (
+                                    <div className="bg-slate-50 p-6 rounded-3xl">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Группа</p>
+                                        <p className="font-bold text-slate-700 text-lg">{user.group_name}</p>
+
+                                        {user.semester_name && (
+                                            <>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase mt-4 mb-1">Семестр</p>
+                                                <p className="font-bold text-slate-700">{user.semester_name}</p>
+                                                {user.semester_start && user.semester_end && (
+                                                    <p className="text-[10px] text-slate-500 mt-1">
+                                                        {new Date(user.semester_start).toLocaleDateString()} — {new Date(user.semester_end).toLocaleDateString()}
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-slate-50 p-6 rounded-3xl">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Группа</p>
+                                        <p className="font-bold text-slate-700">Не указана</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

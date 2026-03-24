@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"backend/internal/domain/user"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,11 +19,11 @@ func NewUserHandler(userService *application.UserService) *UserHandler {
 
 // GetMe godoc
 // @Summary      Получение профиля текущего пользователя
-// @Description  Возвращает информацию о текущем авторизованном пользователе
+// @Description  Возвращает информацию о текущем авторизованном пользователе с группой и семестром
 // @Tags         users
 // @Security     BearerAuth
 // @Produce      json
-// @Success      200  {object}  user.User
+// @Success      200  {object}  user.UserResponse
 // @Failure      401  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
 // @Router       /users/me [get]
@@ -33,7 +34,8 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	u, err := h.userService.GetProfile(c.Request.Context(), userID.(string))
+	// Используем новый метод с деталями
+	u, err := h.userService.GetProfileWithDetails(c.Request.Context(), userID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -43,23 +45,10 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	// Не отправляем хеш пароля
-	u.PasswordHash = ""
 	c.JSON(http.StatusOK, u)
 }
 
-// GetUserByID godoc
-// @Summary      Получение пользователя по ID
-// @Description  Возвращает информацию о пользователе по его ID (с проверкой прав)
-// @Tags         users
-// @Security     BearerAuth
-// @Produce      json
-// @Param        id   path      string  true  "User ID"
-// @Success      200  {object}  user.User
-// @Failure      401  {object}  map[string]string
-// @Failure      403  {object}  map[string]string
-// @Failure      404  {object}  map[string]string
-// @Router       /users/{id} [get]
+// GetUserByID с деталями TODO:в свагу добавить
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	currentUserID, exists := c.Get("user_id")
 	if !exists {
@@ -80,8 +69,8 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 		return
 	}
 
-	// Получаем целевого пользователя
-	targetUser, err := h.userService.GetProfile(c.Request.Context(), targetID)
+	// Получаем целевого пользователя с деталями
+	targetUser, err := h.userService.GetProfileWithDetails(c.Request.Context(), targetID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -92,12 +81,16 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	}
 
 	// Проверяем права на просмотр
-	if !currentUser.CanViewUser(targetUser) {
+	// Для проверки прав нужно создать временный объект User
+	tempUser := &user.User{
+		ID:   targetUser.ID,
+		Role: targetUser.Role,
+	}
+	if !currentUser.CanViewUser(tempUser) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you don't have permission to view this user"})
 		return
 	}
 
-	targetUser.PasswordHash = ""
 	c.JSON(http.StatusOK, targetUser)
 }
 

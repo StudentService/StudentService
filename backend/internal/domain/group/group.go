@@ -12,7 +12,7 @@ type Group struct {
 	Name       string     `json:"name"`
 	CourseID   uuid.UUID  `json:"course_id"`
 	SemesterID uuid.UUID  `json:"semester_id"`
-	HolderID   *uuid.UUID `json:"holder_id,omitempty"` // куратор группы
+	HolderID   *uuid.UUID `json:"holder_id,omitempty"`
 	CreatedAt  time.Time  `json:"created_at"`
 	UpdatedAt  time.Time  `json:"updated_at"`
 }

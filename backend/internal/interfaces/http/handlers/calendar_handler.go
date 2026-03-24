@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/internal/domain/calendar"
+	"log"
 	"net/http"
 	"time"
 
@@ -46,9 +47,8 @@ func (h *CalendarHandler) GetMyEvents(c *gin.Context) {
 		return
 	}
 
-	// Парсим параметры дат
 	fromStr := c.DefaultQuery("from", time.Now().Format(time.RFC3339))
-	toStr := c.DefaultQuery("to", time.Now().AddDate(0, 1, 0).Format(time.RFC3339)) // по умолчанию месяц
+	toStr := c.DefaultQuery("to", time.Now().AddDate(0, 1, 0).Format(time.RFC3339))
 
 	from, err := time.Parse(time.RFC3339, fromStr)
 	if err != nil {
@@ -62,12 +62,17 @@ func (h *CalendarHandler) GetMyEvents(c *gin.Context) {
 		return
 	}
 
+	// Добавляем логирование
+	log.Printf("[DEBUG] CalendarHandler.GetMyEvents: userID=%s, from=%s, to=%s", userID, from, to)
+
 	events, err := h.calendarService.GetMyEvents(c.Request.Context(), userID, from, to)
 	if err != nil {
+		log.Printf("[DEBUG] Error in GetMyEvents: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	log.Printf("[DEBUG] CalendarHandler.GetMyEvents: found %d events", len(events))
 	c.JSON(http.StatusOK, events)
 }
 

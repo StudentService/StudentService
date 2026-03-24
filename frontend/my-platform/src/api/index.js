@@ -38,5 +38,20 @@ export const api = {
         getTemplate: () => apiAxios.get('/questionnaire/template'),
         submit: (data) => apiAxios.post('/questionnaire/submit', { answers: data }),
         saveDraft: (data) => apiAxios.post('/questionnaire/draft', data), // ДОБАВЛЕНО
+    },
+    groups: {
+        getAll: () => apiAxios.get('/groups'),
+        getById: (id) => apiAxios.get(`/groups/${id}`),
+        create: (data) => apiAxios.post('/groups', data),
+        update: (id, data) => apiAxios.patch(`/groups/${id}`, data),
+        delete: (id) => apiAxios.delete(`/groups/${id}`),
+    },
+    semesters: {
+        getAll: () => apiAxios.get('/semesters'),
+        getActive: () => apiAxios.get('/semesters/active'),
+        getById: (id) => apiAxios.get(`/semesters/${id}`),
+        create: (data) => apiAxios.post('/semesters', data),
+        update: (id, data) => apiAxios.patch(`/semesters/${id}`, data),
+        delete: (id) => apiAxios.delete(`/semesters/${id}`),
     }
 };
