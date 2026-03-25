@@ -1,26 +1,32 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth();
+
+    // Получаем путь, куда пользователь хотел попасть (если был редирект)
+    const from = location.state?.from?.pathname || '/dashboard';
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
         try {
-            const response = await api.post('/auth/login', { email, password });
-            // Согласно твоему Swagger, для логина может быть другой путь к токену, проверь:
-            const token = response.data.access_token || response.data.token?.access_token;
-
-            localStorage.setItem('access_token', token);
-            navigate('/dashboard');
+            await login({ email, password });
+            navigate(from, { replace: true });
         } catch (err) {
-            setError(err.response?.data?.error || 'Неверный логин или пароль');
+            setError(err.response?.data?.error || err.message || 'Неверный логин или пароль');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -34,14 +40,20 @@ const LoginPage = () => {
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
-                    {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100 italic">{error}</div>}
+                    {error && (
+                        <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100 italic">
+                            {error}
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-1 ml-1">Email</label>
                         <input
                             type="email" required
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                            disabled={loading}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all disabled:opacity-50"
                             placeholder="admin@example.com"
+                            value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
@@ -50,14 +62,20 @@ const LoginPage = () => {
                         <label className="block text-sm font-semibold text-slate-700 mb-1 ml-1">Пароль</label>
                         <input
                             type="password" required
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                            disabled={loading}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all disabled:opacity-50"
                             placeholder="••••••••"
+                            value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
 
-                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95">
-                        Войти
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 disabled:scale-100"
+                    >
+                        {loading ? 'Вход...' : 'Войти'}
                     </button>
                 </form>
 

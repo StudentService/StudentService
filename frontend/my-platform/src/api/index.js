@@ -7,10 +7,22 @@ export const api = {
     },
     users: {
         getMe: () => apiAxios.get('/users/me'),
-        updateMe: (data) => apiAxios.patch('/users/me', data), // ДОБАВЛЕНО
+        updateMe: (data) => apiAxios.patch('/users/me', data),
     },
     dashboard: {
-        getSummary: () => apiAxios.get('/dashboard'),
+        getStudent: () => apiAxios.get('/dashboard'),
+        getTeacher: () => apiAxios.get('/teacher/dashboard'),
+    },
+    teacher: {
+        getDashboard: () => apiAxios.get('/teacher/dashboard'),
+        getGroups: () => apiAxios.get('/teacher/groups'),
+        getGroupStudents: (groupId) => apiAxios.get(`/teacher/groups/${groupId}/students`),
+        getGroupGrades: (groupId) => apiAxios.get(`/teacher/groups/${groupId}/grades`),
+        getStudentProfile: (studentId) => apiAxios.get(`/teacher/students/${studentId}`),
+        getStudentGrades: (studentId) => apiAxios.get(`/teacher/students/${studentId}/grades`),
+        getActivities: () => apiAxios.get('/teacher/activities'),
+        markAttendance: (activityId, data) => apiAxios.post(`/teacher/activities/${activityId}/attendance`, data),
+        importGrades: (data) => apiAxios.post('/teacher/grades/import', data),
     },
     challenges: {
         getMy: () => apiAxios.get('/challenges/my'),
@@ -34,10 +46,10 @@ export const api = {
         leave: (activityId) => apiAxios.delete(`/activities/${activityId}/enroll`),
     },
     questionnaires: {
-        getMy: () => apiAxios.get('/questionnaire/my'), // ДОБАВЛЕНО
+        getMy: () => apiAxios.get('/questionnaire/my'),
         getTemplate: () => apiAxios.get('/questionnaire/template'),
         submit: (data) => apiAxios.post('/questionnaire/submit', { answers: data }),
-        saveDraft: (data) => apiAxios.post('/questionnaire/draft', data), // ДОБАВЛЕНО
+        saveDraft: (data) => apiAxios.post('/questionnaire/draft', data),
     },
     groups: {
         getAll: () => apiAxios.get('/groups'),

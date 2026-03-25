@@ -14,12 +14,12 @@ const MainLayout = () => {
         { name: 'Календарь', path: '/calendar', icon: '📅' },
         { name: 'Успеваемость', path: '/grades', icon: '📈' },
         { name: 'Активности', path: '/activities', icon: '⚡' },
-        { name: 'Метрики', path: '/metrics', icon: '📊' },
     ];
 
     // Функция выхода
     const handleLogout = () => {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('user_data');
         // Используем replace: true, чтобы пользователь не мог вернуться назад кнопкой браузера
         navigate('/login', { replace: true });
     };

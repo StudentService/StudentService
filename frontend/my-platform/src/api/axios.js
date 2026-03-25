@@ -8,7 +8,6 @@ const instance = axios.create({
 instance.interceptors.request.use((config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
-        // Убедись, что 'Authorization' написан именно так
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -23,20 +22,13 @@ instance.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             console.error("Токен невалиден. Требуется перезаход.");
             localStorage.removeItem('access_token');
-        }
-        return Promise.reject(error);
-    }
-);
-instance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            // Если сервер сказал "401", значит токен всё.
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('user'); // почисти всё
+            localStorage.removeItem('user_data');
 
-            // Жесткий редирект на логин, чтобы юзер не гадал, почему не работает
-            window.location.href = '/login';
+            // Редирект на логин только если мы не на странице логина/регистрации
+            const currentPath = window.location.pathname;
+            if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

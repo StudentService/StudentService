@@ -11,7 +11,6 @@ const ActivitiesPage = () => {
             setLoading(true);
             let res;
             if (filter === 'all') {
-                // Только для админа
                 res = await api.activities.getAll();
             } else {
                 res = await api.activities.getAvailable();

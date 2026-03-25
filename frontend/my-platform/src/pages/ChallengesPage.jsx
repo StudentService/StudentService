@@ -8,38 +8,42 @@ const ChallengePage = () => {
 
     const [formData, setFormData] = useState({
         title: '',
-        description: '', // Для req.Description
-        goal: '',        // Для req.Goal
-        startDate: new Date().toISOString().split('T')[0], // Сегодня по умолчанию
-        endDate: ''      // Для req.EndDate
+        description: '',
+        goal: '',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: ''
     });
+
+    const handleChange = (field) => (e) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: e.target.value
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            // 1. Берем даты из формы
             const start = new Date(formData.startDate);
             const end = new Date(formData.endDate);
 
-            // 2. Валидация на фронте (чтобы не гонять лишний запрос)
             if (end <= start) {
                 alert("Дата окончания должна быть позже даты начала!");
                 setLoading(false);
                 return;
             }
 
-            // 3. Формируем Payload СТРОГО по твоим Go-тегам json:"..."
             const payload = {
                 title: formData.title.trim(),
-                description: formData.description.trim(), // может быть пустым
+                description: formData.description.trim(),
                 goal: formData.goal.trim(),
-                start_date: start.toISOString(), // Снейк-кейс!
-                end_date: end.toISOString()      // Снейк-кейс!
+                start_date: start.toISOString(),
+                end_date: end.toISOString()
             };
 
-            console.log("Отправляем идеальный Payload:", payload);
+            console.log("Отправляем Payload:", payload);
 
             await api.challenges.create(payload);
 
@@ -48,7 +52,6 @@ const ChallengePage = () => {
 
         } catch (err) {
             console.error("Ошибка сервера:", err.response?.data);
-            // Выводим конкретную ошибку валидации из Go
             const errorMsg = err.response?.data?.error || "Ошибка сервера";
             alert(`Сервер не принял данные: ${errorMsg}`);
         } finally {
@@ -69,9 +72,10 @@ const ChallengePage = () => {
                     <input
                         required
                         type="text"
+                        value={formData.title}
+                        onChange={handleChange('title')}
                         className="w-full bg-slate-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#2D9396] transition-all"
                         placeholder="Название вызова"
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
                     />
                 </div>
 
@@ -80,9 +84,10 @@ const ChallengePage = () => {
                     <input
                         required
                         type="text"
+                        value={formData.description}
+                        onChange={handleChange('description')}
                         className="w-full bg-slate-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#2D9396]"
                         placeholder="О чем этот вызов?"
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
                     />
                 </div>
 
@@ -90,9 +95,10 @@ const ChallengePage = () => {
                     <label className="text-xs font-black text-slate-400 uppercase ml-2">Финальная цель (Goal)</label>
                     <textarea
                         required
+                        value={formData.goal}
+                        onChange={handleChange('goal')}
                         className="w-full bg-slate-50 border-none rounded-2xl p-4 min-h-[100px] focus:ring-2 focus:ring-[#2D9396] transition-all"
                         placeholder="Чего конкретно ты хочешь достичь?"
-                        onChange={(e) => setFormData({...formData, goal: e.target.value})}
                     />
                 </div>
 
@@ -103,8 +109,8 @@ const ChallengePage = () => {
                             required
                             type="date"
                             value={formData.startDate}
+                            onChange={handleChange('startDate')}
                             className="w-full bg-slate-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#2D9396]"
-                            onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                         />
                     </div>
                     <div className="space-y-2">
@@ -112,8 +118,9 @@ const ChallengePage = () => {
                         <input
                             required
                             type="date"
+                            value={formData.endDate}
+                            onChange={handleChange('endDate')}
                             className="w-full bg-slate-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#2D9396]"
-                            onChange={(e) => setFormData({...formData, endDate: e.target.value})}
                         />
                     </div>
                 </div>
